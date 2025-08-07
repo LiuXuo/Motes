@@ -178,7 +178,7 @@ npm run dev
 - [API 文档](./API_DOCUMENTATION.md)
 - [Vue.js 文档](https://vuejs.org/)
 - [Express.js 文档](https://expressjs.com/)
-- [AntV X6 文档](https://x6.antv.vision/)
+- [AntV X6 文档](https://x6.antv.antgroup.com/)
 
 ## 📄 许可证
 
@@ -201,5 +201,6 @@ npm run dev
 - 编写清晰的注释和文档
 
 ---
+
 
 **Motes** - Connect your motes. 
