@@ -114,7 +114,7 @@ Motes 致力于将碎片化的知识微粒连接起来，通过思维导图的�
 
 ### 1. 克隆项目
 ```bash
-git clone <repository-url>
+git clone https://github.com/LiuXuo/Motes
 cd motes
 ```
 
