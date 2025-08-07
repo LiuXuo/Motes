@@ -2,7 +2,7 @@
 
 ## 📖 项目简介
 
-Motes 是一个现代化的思维导图与大纲笔记应用，采用前后端分离架构（Vue 3 + Express.js），提供直观的思维导图编辑和强大的笔记管理功能，帮助用户构建完整的知识网络。
+Motes 是一个现代化的思维导图与大纲笔记应用（Vue 3 + Express.js），提供直观的思维导图编辑和强大的笔记管理功能，帮助用户构建完整的知识网络。
 
 ### 项目命名
 
@@ -20,28 +20,28 @@ Motes 致力于将碎片化的知识微粒连接起来，通过思维导图的�
 ## 运行截图
 
 ![项目主页](./screenshots/01-项目主页.png)
-<center><small>项目主页</small></center>
+<p align="center"><small>项目主页</small></p>
 
 ![登录注册页](./screenshots/02-登录注册页.png)
-<center><small>登录注册页</small></center>
+<p align="center"><small>登录注册页</small></p>
 
 ![思维导图视图](./screenshots/03-思维导图视图.png)
-<center><small>思维导图视图</small></center>
+<p align="center"><small>思维导图视图</small></p>
 
 ![大纲笔记视图](./screenshots/04-大纲笔记视图.png)
-<center><small>大纲笔记视图</small></center>
+<p align="center"><small>大纲笔记视图</small></p>
 
 ![文档管理视图](./screenshots/05-文档管理视图.png)
-<center><small>文档管理视图</small></center>
+<p align="center"><small>文档管理视图</small></p>
 
 ![回收站视图](./screenshots/06-回收站视图.png)
-<center><small>回收站视图</small></center>
+<p align="center"><small>回收站视图</small></p>
 
 ![文档导入](./screenshots/07-文档导入.png)
-<center><small>文档导入</small></center>
+<p align="center"><small>文档导入</small></p>
 
 ![文档导出](./screenshots/08-文档导出.png)
-<center><small>文档导出</small></center>
+<p align="center"><small>文档导出</small></p>
 
 ## ✨ 主要功能
 
