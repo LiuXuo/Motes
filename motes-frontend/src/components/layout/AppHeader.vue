@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDocStore, type DocNode } from '@/stores/docStore'
 import { useMoteStore } from '@/stores/moteStore'
@@ -71,6 +71,7 @@ import {
   DeleteOutlined,
   LoadingOutlined,
   LogoutOutlined,
+  RobotOutlined,
 } from '@ant-design/icons-vue'
 
 // 面包屑项接口
@@ -78,7 +79,7 @@ interface BreadcrumbItem {
   key: string
   title: string
   path: string
-  type: 'documents' | 'folder' | 'mote' | 'trash'
+  type: 'documents' | 'folder' | 'mote' | 'trash' | 'ai'
 }
 
 const router = useRouter()
@@ -112,6 +113,8 @@ function getBreadcrumbIcon(type: BreadcrumbItem['type']) {
       return FileMarkdownOutlined
     case 'trash':
       return DeleteOutlined
+    case 'ai':
+      return RobotOutlined
     default:
       return FolderOutlined
   }
@@ -155,6 +158,14 @@ function generateBreadcrumb(): BreadcrumbItem[] {
       title: '回收站',
       path: '/trash',
       type: 'trash',
+    })
+  } else if (route.path === '/ai') {
+    // AI 生成作为独立顶级目录
+    items.push({
+      key: 'ai',
+      title: 'AI 生成',
+      path: '/ai',
+      type: 'ai',
     })
   } else {
     // 其他路径都从"我的文档"开始

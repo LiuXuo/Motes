@@ -341,7 +341,6 @@ const handleRegister = async () => {
   width: 100%;
 
   :deep(.ant-segmented-item) {
-    text-align: center;
     font-size: 16px;
     font-weight: 500;
   }

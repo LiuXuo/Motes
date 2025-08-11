@@ -214,38 +214,5 @@ const executeNodeOperation = async (operation: NodeOperation) => {
   justify-items: center;
 }
 
-/* 按钮样式优化 */
-:deep(.ant-btn-circle) {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-}
-
-/* 大尺寸按钮图标优化 */
-:deep(.ant-btn-lg) {
-  .anticon {
-    font-size: 18px;
-  }
-}
-
-/* 工具提示样式 */
-:deep(.ant-tooltip) {
-  font-size: 13px;
-}
+/* 与 Ant Design 的通用覆写已移至全局样式 */
 </style>

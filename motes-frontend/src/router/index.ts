@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '../views/AppLayout.vue'
 import AppDocGrid from '../components/layout/AppDocGrid.vue'
 import AppMote from '../components/layout/AppMote.vue'
+import AppAiGenrate from '../components/layout/AppAiGenrate.vue'
 import LoginPage from '../views/LoginPage.vue'
 import HomePage from '../views/HomePage.vue'
 import NotFoundPage from '../views/NotFoundPage.vue'
@@ -72,6 +73,14 @@ const router = createRouter({
       ],
     },
     {
+      path: '/ai',
+      component: AppLayout,
+      meta: { requiresAuth: true },
+      children: [
+        { path: '', component: AppAiGenrate },
+      ],
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFoundPage,
@@ -96,7 +105,7 @@ router.beforeEach(async (to, from, next) => {
       const docStore = useDocStore()
       // 检查是否需要加载数据：如果还没有初始化过或者正在加载中
       const needsDataLoad = !docStore.isInitialized && !docStore.isLoading
-      
+
       if (needsDataLoad) {
         try {
           await docStore.fetchDocTree()

@@ -1,0 +1,88 @@
+/* Ant Design Vue 全局样式覆写（通用规则） */
+
+/* 按钮：圆形按钮的动效与阴影 */
+.ant-btn-circle {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* 大尺寸按钮的图标大小优化 */
+.ant-btn-lg {
+  .anticon {
+    font-size: 18px;
+  }
+}
+
+/* 工具提示字号统一 */
+.ant-tooltip {
+  font-size: 13px;
+}
+
+/* 分割线（带文字）统一外边距 */
+.ant-divider-with-text {
+  margin: 20px 0 !important;
+}
+
+/* 表单项标签字号 */
+.ant-form-item-label > label {
+  font-size: 16px;
+}
+
+/* 输入与文本域的交互与圆角统一（页面局部可继续覆盖） */
+.ant-input,
+.ant-input-textarea {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.15);
+    border-color: #1890ff;
+  }
+
+  &:hover {
+    border-color: #40a9ff;
+  }
+}
+
+/* 文本域内部的原生行为优化 */
+.ant-input-textarea {
+  .ant-input {
+    resize: none;
+    border: none;
+    box-shadow: none;
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  /* 统一的文字显示体验（页面可定制字号） */
+  .ant-input {
+    line-height: 1.6;
+    transition: all 0.2s ease;
+  }
+}
+
+/* 分段选择器的项居中显示（容器宽度、排列在页面内控制） */
+.ant-segmented-item {
+  text-align: center;
+}
+
+

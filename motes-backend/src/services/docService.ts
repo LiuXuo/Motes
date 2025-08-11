@@ -423,7 +423,21 @@ export class DocService {
       };
     }
 
-    await doc.save();
+    // 使用原子操作更新文档，避免深层修改未被 Mongoose 变更跟踪到
+    const updateResult = await Doc.updateOne(
+      { userId: doc.userId },
+      { $set: { docTree: doc.docTree } },
+    );
+    if (updateResult.modifiedCount === 0) {
+      console.error('移动节点更新失败，没有修改任何记录');
+      throw {
+        status: 500,
+        error: {
+          code: 'UPDATE_ERROR',
+          message: '移动节点更新失败',
+        },
+      };
+    }
     return { message: '文档节点移动成功' };
   }
 

@@ -12,10 +12,10 @@
         class="doc-item"
         @click="handleItemClick(item)"
       >
-        <DocContextMenu
+          <DocContextMenu
           :node-type="item.type"
           :context-type="effectiveType === 'trash' ? 'trash' : 'normal'"
-          @menu-click="(nodeKey: string, menuKey: string) => onContextMenuClick(item.key, menuKey, item)"
+            @menu-click="(nodeKey: string, menuKey: string) => onContextMenuClick(item.key, menuKey)"
         >
           <div class="doc-item-content">
             <div class="doc-icon">
@@ -29,6 +29,16 @@
     </div>
     <AEmpty v-else description="暂无内容" class="empty-container" />
   </div>
+
+  <!-- 选择目标文件夹（用于移动） -->
+  <DocTreeModal
+    v-model:open="moveModalOpen"
+    title="选择目标文件夹"
+    okText="移动到此处"
+    :confirmLoading="docStore.isLoading"
+    :excludeSubtreeRootKey="movingNodeKey || undefined"
+    @confirm="handleMoveConfirm"
+  />
 
   <!-- 重命名对话框 -->
   <a-modal
@@ -58,14 +68,18 @@ import {
 import { Empty as AEmpty } from 'ant-design-vue'
 import { useDocStore } from '@/stores/docStore'
 import type { DocNode } from '@/stores/docStore'
-import { computed, watch, ref, nextTick } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import DocContextMenu from './DocContextMenu.vue'
+import DocTreeModal from './DocTreeModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 const docStore = useDocStore()
+// 移动弹窗状态
+const moveModalOpen = ref(false)
+const movingNodeKey = ref<string | null>(null)
 // 重命名对话框状态
 const renameModalVisible = ref(false)
 const renameModalTitle = ref('')
@@ -336,7 +350,7 @@ const handlePermanentDeleteNode = async (key: string) => {
   }
 }
 
-const onContextMenuClick = async (itemKey: string, menuKey: string | number, targetNode?: DocNode) => {
+const onContextMenuClick = async (itemKey: string, menuKey: string | number) => {
   try {
     switch (menuKey) {
       case 'new-folder':
@@ -354,6 +368,10 @@ const onContextMenuClick = async (itemKey: string, menuKey: string | number, tar
       case 'delete':
         await handleDeleteNode(itemKey)
         break
+      case 'move':
+        movingNodeKey.value = itemKey
+        moveModalOpen.value = true
+        break
       case 'restore':
         await handleRestoreNode(itemKey)
         break
@@ -366,6 +384,24 @@ const onContextMenuClick = async (itemKey: string, menuKey: string | number, tar
   } catch (error) {
     console.error('操作失败:', error)
     message.error('操作失败')
+  }
+}
+
+const handleMoveConfirm = async (folderKey: string) => {
+  if (!movingNodeKey.value) return
+  try {
+    const result = await docStore.moveNode(movingNodeKey.value, folderKey)
+    if (result.success) {
+      message.success('移动成功')
+    } else {
+      message.error(result.error?.message || '移动失败')
+    }
+  } catch (error) {
+    console.error('移动失败:', error)
+    message.error('移动失败')
+  } finally {
+    moveModalOpen.value = false
+    movingNodeKey.value = null
   }
 }
 </script>

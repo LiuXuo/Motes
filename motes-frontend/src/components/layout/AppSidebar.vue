@@ -16,6 +16,10 @@
         mode="inline"
         @click="handleMenuClick"
       >
+        <a-menu-item key="ai">
+          <RobotOutlined />
+          <span class="menu-title">AI 生成</span>
+        </a-menu-item>
         <a-sub-menu key="documents">
           <template #title>
             <span @click.stop="handleDocumentsClick">
@@ -113,6 +117,7 @@
               </DocContextMenu>
             </template>
           </a-tree>
+
         </a-sub-menu>
         <a-menu-item key="trash">
           <delete-outlined />
@@ -123,6 +128,16 @@
 
     <div v-if="!collapsedValue" class="resize-handle" @mousedown="startResize"></div>
   </a-layout-sider>
+
+  <!-- 选择目标文件夹（用于移动） -->
+  <DocTreeModal
+    v-model:open="moveModalOpen"
+    title="选择目标文件夹"
+    okText="移动到此处"
+    :confirmLoading="docStore.isLoading"
+    :excludeSubtreeRootKey="movingNodeKey || undefined"
+    @confirm="handleMoveConfirm"
+  />
 
   <!-- 重命名对话框 -->
   <a-modal
@@ -165,6 +180,7 @@ import {
   ImportOutlined,
   ExportOutlined,
   FileTextOutlined,
+  RobotOutlined
 } from '@ant-design/icons-vue'
 import { ref, watch, computed, onUnmounted,  nextTick } from 'vue'
 import { useRouter } from 'vue-router'
@@ -173,6 +189,7 @@ import { useDocStore, type DocNode } from '@/stores/docStore'
 import { useMoteStore } from '@/stores/moteStore'
 import { message } from 'ant-design-vue'
 import DocContextMenu from './DocContextMenu.vue'
+import DocTreeModal from './DocTreeModal.vue'
 
 // ==================== 接口定义 ====================
 interface Props {
@@ -238,6 +255,10 @@ const fileInputRef = ref<HTMLInputElement>()
 const importFormat = ref<'json' | 'markdown'>('json')
 const importParentKey = ref<string>('')
 
+// 移动对话框状态
+const moveModalOpen = ref(false)
+const movingNodeKey = ref<string | null>(null)
+
 // ==================== 计算属性 ====================
 const filteredDocuments = computed(() => {
   function filterDeletedNodes(nodes: DocNode[]): DocNode[] {
@@ -291,10 +312,14 @@ async function onContextMenuClick(treeKey: string, menuKey: string | number, tar
       case 'delete':
         await handleDeleteNode(targetNode.key)
         break
+      case 'move':
+        movingNodeKey.value = targetNode.key
+        moveModalOpen.value = true
+        break
       default:
         break
     }
-  } catch (error) {
+  } catch {
     message.error('操作失败')
   }
 }
@@ -309,8 +334,25 @@ async function handleCreateNode(type: 'folder' | 'mote', parentKey: string) {
     } else {
       message.error(result.error?.message || '创建失败')
     }
-  } catch (error) {
+  } catch {
     message.error('创建失败')
+  }
+}
+
+async function handleMoveConfirm(folderKey: string) {
+  if (!movingNodeKey.value) return
+  try {
+    const result = await moveNode(movingNodeKey.value, folderKey)
+    if (result.success) {
+      message.success('移动成功')
+    } else {
+      message.error(result.error?.message || '移动失败')
+    }
+  } catch {
+    message.error('移动失败')
+  } finally {
+    moveModalOpen.value = false
+    movingNodeKey.value = null
   }
 }
 
@@ -322,7 +364,7 @@ async function handleDuplicateNode(node: DocNode) {
     } else {
       message.error(result.error?.message || '创建副本失败')
     }
-  } catch (error) {
+  } catch {
     message.error('创建副本失败')
   }
 }
@@ -363,7 +405,7 @@ async function handleRenameConfirm() {
     } else {
       message.error(result.error?.message || '重命名失败')
     }
-  } catch (error) {
+  } catch {
     message.error('重命名失败')
   }
 }
@@ -394,7 +436,7 @@ async function handleFileChange(event: Event) {
       // 刷新文档树
       await fetchDocTree()
     }
-  } catch (error) {
+  } catch {
     message.error('文件导入失败，请检查文件格式')
   } finally {
     // 清空文件输入框
@@ -414,7 +456,7 @@ async function handleDeleteNode(key: string) {
     } else {
       message.error(result.error?.message || '删除失败')
     }
-  } catch (error) {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -434,7 +476,7 @@ async function handleAddMenuClick(e: { key: string }) {
         message.error('无法获取文档树，请刷新页面重试')
         return
       }
-    } catch (error) {
+    } catch {
       message.error('无法获取文档树，请刷新页面重试')
       return
     }
@@ -457,7 +499,7 @@ async function handleAddMenuClick(e: { key: string }) {
       } else {
         message.error('无法获取根节点，请刷新页面重试')
       }
-    } catch (error) {
+  } catch {
       message.error('无法获取根节点，请刷新页面重试')
     }
     return
@@ -491,6 +533,8 @@ const updateSelectedKeys = () => {
 
   if (path === '/documents') {
     selectedKeys.value = ['documents']
+  } else if (path === '/ai') {
+    selectedKeys.value = ['ai']
   } else if (path.startsWith('/folder/')) {
     const folderId = currentRoute.params.folderId as string
     selectedKeys.value = [folderId]
@@ -516,7 +560,9 @@ watch(
 )
 
 function handleMenuClick(e: { key: string }) {
-  if (e.key === 'trash') {
+  if (e.key === 'ai') {
+    router.push('/ai')
+  } else if (e.key === 'trash') {
     // 回收站被点击，导航到回收站页面
     router.push('/trash')
   }
@@ -631,7 +677,7 @@ async function onDrop(info: AntTreeNodeDropEvent) {
       } else {
         message.success('移动成功')
       }
-    } catch (error) {
+    } catch {
       message.error('移动失败，网络错误')
       // 回滚本地更改
       docStore.updateLocalDocTree(originalData.children || [])

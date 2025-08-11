@@ -39,6 +39,10 @@
               <DeleteOutlined />
               删除
             </a-menu-item>
+            <a-menu-item key="move">
+              <FolderOpenOutlined />
+              移动到...
+            </a-menu-item>
           </template>
 
           <!-- 文档菜单项 -->
@@ -54,6 +58,10 @@
             <a-menu-item key="delete">
               <DeleteOutlined />
               删除
+            </a-menu-item>
+            <a-menu-item key="move">
+              <FolderOpenOutlined />
+              移动到...
             </a-menu-item>
           </template>
         </template>

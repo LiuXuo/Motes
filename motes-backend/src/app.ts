@@ -5,12 +5,15 @@ import { connectDB } from './config/database';
 import userRoutes from './routes/user';
 import docRoutes from './routes/doc';
 import moteRoutes from './routes/mote';
+import aiRoutes from './routes/ai';
 
 // 加载环境变量
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+// 增大 JSON 请求体与处理超时
+app.set('json spaces', 0);
 
 // 中间件
 app.use(express.json({ limit: '10mb' }));
@@ -28,6 +31,7 @@ app.use(cors(corsOptions));
 app.use('/api/user', userRoutes);
 app.use('/api/doc', docRoutes);
 app.use('/api/mote', moteRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {

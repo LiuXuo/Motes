@@ -11,3 +11,6 @@ export * from './docApi'
 
 // 脑图笔记 API
 export * from './moteApi'
+
+// AI 生成 API
+export * from './aiApi'

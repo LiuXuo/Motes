@@ -191,7 +191,6 @@ const enterMotes = () => {
 
     :deep(.ant-segmented-item) {
       flex: 1;
-      text-align: center;
     }
   }
 

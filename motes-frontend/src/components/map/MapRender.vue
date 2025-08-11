@@ -186,7 +186,7 @@ onMounted(() => {
   color: #666;
 }
 
-/* 卡片样式优化 */
+/* 卡片样式（该视图特有），保留在本地 */
 :deep(.ant-card) {
   backdrop-filter: blur(15px);
   background: rgba(255, 255, 255, 0.98);
@@ -206,90 +206,5 @@ onMounted(() => {
   padding: 20px;
 }
 
-/* 按钮样式优化 */
-:deep(.ant-btn-circle) {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-}
-
-/* 大尺寸按钮图标优化 */
-:deep(.ant-btn-lg) {
-  .anticon {
-    font-size: 18px;
-  }
-}
-
-/* 输入框样式优化 */
-:deep(.ant-input),
-:deep(.ant-input-textarea) {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 8px;
-
-  &:focus {
-    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.15);
-    border-color: #1890ff;
-  }
-
-  &:hover {
-    border-color: #40a9ff;
-  }
-}
-
-:deep(.ant-input-textarea) {
-  .ant-input {
-    resize: none;
-    border: none;
-    box-shadow: none;
-
-    &:focus {
-      box-shadow: none;
-    }
-  }
-}
-
-/* 工具提示样式 */
-:deep(.ant-tooltip) {
-  font-size: 13px;
-}
-
-/* 文本区域样式优化 */
-:deep(.ant-input-textarea) {
-  .ant-input {
-    font-size: 14px;
-    line-height: 1.6;
-    transition: all 0.2s ease;
-  }
-
-  /* 未聚焦时的样式 */
-  &:not(:focus-within) {
-    .ant-input {
-      resize: none;
-      overflow: hidden;
-    }
-  }
-
-  /* 聚焦时的样式 */
-  &:focus-within {
-    .ant-input {
-      resize: none;
-    }
-  }
-}
+/* 与 Ant Design 的通用覆写已移至全局样式 */
 </style>
