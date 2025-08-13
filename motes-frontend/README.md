@@ -2,11 +2,19 @@
 
 ## 📖 项目简介
 
-Motes 前端应用是思维导图与笔记管理平台的用户界面层，基于 Vue 3 和 AntV X6 图形引擎构建，提供直观的思维导图编辑和强大的笔记管理功能，为用户打造流畅的知识管理体验。
+Motes 前端是脑图笔记Web应用的用户界面层，基于 Vue 3 和 AntV X6 图形引擎构建，提供直观的思维导图编辑和便捷的大纲笔记操作功能，为用户打造流畅的知识管理体验。
 
 Motes 前端致力于将碎片化的知识微粒连接起来，通过思维导图的视觉化展示和大纲笔记的结构化组织，帮助用户构建完整的知识网络。每个 mote（微粒）都是知识的最小单元，通过连接和组合，形成强大的知识体系。采用现代化的前端技术栈，提供流畅的用户交互体验。
 
 ## ✨ 主要功能
+
+### 🤖 AI 智能生成
+- **AI 文档生成**：基于主题、文本或文件自动生成脑图笔记
+- **AI 节点扩展**：选中节点后使用 AI 自动扩展子节点
+- **多模型支持**：支持 OpenAI 和 Ollama 等多种 AI 模型
+- **预设配置**：内置常用模型预设，快速配置
+- **文件解析**：支持 PDF、DOCX、Markdown 文件解析生成
+- **实时预览**：生成成功可预览结果，确认后导入
 
 ### 🧠 思维导图
 - **直观的节点连接**：基于 AntV X6 图形引擎，提供流畅的思维导图编辑体验
@@ -16,7 +24,7 @@ Motes 前端致力于将碎片化的知识微粒连接起来，通过思维导�
 - **自动布局**：智能的层次布局算法，自动排列节点位置
 - **缩放控制**：支持图形缩放和平移操作
 
-### 📝 笔记管理
+### 📝 大纲笔记
 - **大纲视图**：结构化的笔记大纲，清晰展示内容层次
 - **文本编辑**：支持节点文本的实时编辑和修改
 - **实时同步**：与思维导图实时同步，数据一致性保证
@@ -85,7 +93,10 @@ motes-frontend/
 │   │   │   ├── AppHeader.vue      # 应用头部
 │   │   │   ├── AppSidebar.vue     # 侧边栏
 │   │   │   ├── AppDocGrid.vue     # 文档网格
-│   │   │   ├── AppMote.vue        # 思维导图主组件
+│   │   │   ├── AppMote.vue        # 脑图笔记主组件
+│   │   │   ├── AppAiGenrate.vue   # AI生成配置页面
+│   │   │   ├── AiExpandModal.vue  # AI生枝配置弹窗
+│   │   │   ├── DocTreeModal.vue   # 文档树选择弹窗
 │   │   │   └── DocContextMenu.vue # 文档右键菜单
 │   │   ├── map/           # 思维导图组件
 │   │   │   ├── MapRender.vue      # 图形渲染主组件
@@ -93,7 +104,7 @@ motes-frontend/
 │   │   │   ├── graphEvents.ts     # 图形事件处理
 │   │   │   ├── NodeCard.vue       # 节点操作卡片
 │   │   │   └── NodeOperations.vue # 节点操作按钮
-│   │   └── note/          # 笔记组件
+│   │   └── note/          # 大纲笔记组件
 │   │       ├── NoteRender.vue     # 笔记渲染主组件
 │   │       ├── NoteOutline.vue    # 大纲容器
 │   │       ├── OutlineNode.vue    # 大纲节点
@@ -106,10 +117,11 @@ motes-frontend/
 │   │   └── NotFoundPage.vue # 404页面
 │   ├── stores/            # 状态管理
 │   │   ├── init.ts        # 状态初始化
+│   │   ├── aiStore.ts     # AI功能状态管理
 │   │   ├── userStore.ts   # 用户状态管理
 │   │   ├── docStore.ts    # 文档状态管理
-│   │   ├── moteStore.ts   # 思维导图状态管理
-│   │   └── mote/          # 思维导图子状态
+│   │   ├── moteStore.ts   # 脑图笔记状态管理
+│   │   └── mote/          # 脑图笔记子状态
 │   │       ├── index.ts           # 子状态导出
 │   │       ├── keyboardStore.ts   # 键盘快捷键状态
 │   │       ├── nodeStateStore.ts  # 节点状态管理
@@ -121,7 +133,8 @@ motes-frontend/
 │   │   ├── index.ts       # 服务导出
 │   │   ├── userApi.ts     # 用户相关 API
 │   │   ├── docApi.ts      # 文档相关 API
-│   │   └── moteApi.ts     # 思维导图相关 API
+│   │   ├── moteApi.ts     # 脑图笔记相关 API
+│   │   └── aiApi.ts       # AI功能相关 API
 │   ├── router/            # 路由配置
 │   │   └── index.ts       # 路由定义
 │   ├── utils/             # 工具函数
@@ -129,6 +142,8 @@ motes-frontend/
 │   │   └── idGenerator.ts # ID 生成器
 │   ├── types/             # TypeScript 类型定义
 │   │   └── global.d.ts    # 全局类型定义
+│   ├── styles/            # 样式文件
+│   │   └── antd-overrides.less # Ant Design Vue 样式覆写
 │   ├── App.vue           # 根组件
 │   └── main.ts           # 应用入口
 ├── package.json         # 项目配置
@@ -153,7 +168,7 @@ npm install
 ```bash
 npm run dev
 ```
-应用将在 `http://localhost:5173` 启动（端口可能因占用而变化）
+应用将在 `http://localhost:5173` 启动
 
 ### 构建生产版本
 ```bash
@@ -195,7 +210,7 @@ npm run format
 - 使用 Pinia 进行状态管理
 - Store 文件放在 `src/stores/` 目录
 - 按功能模块划分 Store
-- 思维导图相关状态进一步细分为子模块
+- 脑图笔记相关状态进一步细分为子模块
 
 ### 样式规范
 - 使用 Less 预处理器
@@ -209,6 +224,15 @@ npm run format
 
 ## 📱 功能特性
 
+### AI 智能功能
+- ✅ AI 文档生成（基于主题、文本、文件）
+- ✅ AI 节点扩展（选中节点自动生成子节点）
+- ✅ 多模型支持（OpenAI、Ollama）
+- ✅ 预设配置管理
+- ✅ 文件解析（PDF、DOCX、Markdown）
+- ✅ 实时预览和确认
+- ✅ 高级参数配置（温度、Top P等）
+
 ### 思维导图功能
 - ✅ 节点创建、编辑、删除
 - ✅ 键盘快捷键支持（Enter、Shift+Enter、Delete等）
@@ -218,7 +242,7 @@ npm run format
 - ✅ 节点折叠展开
 - ✅ 节点升级降级操作
 
-### 笔记功能
+### 大纲笔记功能
 - ✅ 大纲视图展示
 - ✅ 文本编辑和修改
 - ✅ 实时数据同步
@@ -242,7 +266,7 @@ npm run format
 
 ## ⌨️ 快捷键说明
 
-### 思维导图快捷键
+### 脑图笔记快捷键
 - **Enter**: 新增子节点
 - **Shift+Enter**: 新增同级节点
 - **Delete**: 删除节点
@@ -252,15 +276,59 @@ npm run format
 - **Ctrl+Up**: 上移节点
 - **Ctrl+Down**: 下移节点
 - **方向键**: 移动选中节点
+- **Ctrl+E**: AI生枝（扩展选中节点）
 
 ### 通用快捷键
 - **Ctrl+S**: 保存文档
 - **Ctrl+Z**: 撤销操作（待实现）
 - **Ctrl+Y**: 重做操作（待实现）
 
+## 🤖 AI 功能详解
 
+### AI 文档生成
+支持三种输入方式生成脑图笔记：
 
+1. **主题生成**：输入一个主题，AI 自动生成相关的脑图笔记结构
+2. **文本生成**：粘贴或输入文本内容，AI 解析并生成结构化脑图笔记
+3. **文件生成**：上传 PDF、DOCX 或 Markdown 文件，AI 解析文件内容生成脑图笔记
 
+### AI 节点扩展
+在脑图笔记编辑过程中，选中任意节点后：
+- 点击节点操作按钮中的"AI生枝"
+- 或使用快捷键 `Ctrl+E`
+- 配置 AI 模型参数
+- AI 自动为选中节点生成相关的子节点
+
+### 预设的 AI 模型
+
+#### Ollama 本地模型
+- **Qwen2:7b-instruct** - 通义千问2 7B 指令模型
+- **Llama3.1:8b-instruct** - Meta Llama3.1 8B 指令模型
+- **Mistral:7b-instruct** - Mistral 7B 指令模型
+- **Gemma3:4b** - Google Gemma3 4B 模型
+
+#### OpenAI 兼容模型
+- **GPT-4o-mini** - OpenAI GPT-4o 迷你版
+- **GPT-3.5-turbo** - OpenAI GPT-3.5 Turbo
+- **DeepSeek V3** - DeepSeek Chat 模型
+- **DeepSeek R1** - DeepSeek Reasoner 模型
+- **Gemini 2.0 Flash** - Google Gemini 2.0 Flash 模型
+- **Gemini 2.0 Flash Exp** - Google Gemini 2.0 Flash Exp 模型
+- **Gemini 1.5 Flash** - Google Gemini 1.5 Flash 模型
+
+#### 手动配置
+除了预设模型外，还支持手动配置任何 OpenAI 兼容的 API 服务，包括：
+- 自定义本地模型
+- 第三方 AI 服务提供商
+- 私有部署的模型服务
+
+### AI 配置参数
+- **温度 (Temperature)**：控制生成随机性，0-2 范围
+- **Top P**：控制生成多样性，0-1 范围
+- **最大 Token 数**：限制生成内容长度
+- **深度限制**：控制脑图笔记层级深度
+- **分支因子**：控制每个节点的子节点数量
+- **语言偏好**：支持中文和英文生成
 
 ## 🧪 代码质量检查
 
@@ -292,14 +360,10 @@ npm run format
 
 ## 🔗 相关链接
 
-- [后端文档](../motes-backend/README.md)
-- [API 文档](../API_DOCUMENTATION.md)
+- [本项目后端文档](../motes-backend/README.md)
+- [本项目 API 文档](../API_DOCUMENTATION.md)
 - [Vue.js 文档](https://vuejs.org/)
 - [Ant Design Vue 文档](https://antdv.com/)
-- [AntV X6 文档](https://x6.antv.vision/)
-
-## 📄 许可证
-
-本项目采用 MIT 许可证。
+- [AntV X6 文档](https://x6.antv.antgroup.com/)
 
 **Motes** - Connect your motes.

@@ -1,3 +1,22 @@
+<!--
+  大纲笔记容器组件
+
+  主要功能：
+  - 作为大纲笔记的根容器
+  - 渲染递归的节点树结构
+  - 处理节点点击和折叠事件
+
+  Props:
+  - selectedNodeId: 当前选中的节点ID
+
+  Events:
+  - nodeClick: 节点点击事件
+  - nodeToggle: 节点折叠/展开事件
+
+  Dependencies:
+  - useMoteStore: 脑图状态管理
+  - OutlineNode: 大纲节点组件
+-->
 <template>
   <div class="outline-container">
     <!-- 使用递归组件渲染节点 -->

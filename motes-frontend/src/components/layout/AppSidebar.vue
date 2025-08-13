@@ -1,3 +1,15 @@
+<!--
+  应用侧边栏组件
+
+  主要功能：
+  - 文档树导航和层级展示
+  - 文档搜索和过滤
+  - 新建文档/文件夹功能
+  - 文档导入导出功能
+  - 拖拽移动文档
+  - 右键菜单操作
+  - 侧边栏宽度调整
+-->
 <template>
   <a-layout-sider
     v-model:collapsed="collapsedValue"
@@ -191,13 +203,31 @@ import { message } from 'ant-design-vue'
 import DocContextMenu from './DocContextMenu.vue'
 import DocTreeModal from './DocTreeModal.vue'
 
-// ==================== 接口定义 ====================
+/**
+ * 组件属性接口
+ *
+ * 定义侧边栏组件的输入属性，
+ * 控制侧边栏的显示状态。
+ *
+ * @interface Props
+ */
 interface Props {
+  /** 是否折叠侧边栏 */
   collapsed?: boolean
 }
 
+/**
+ * 组件事件接口
+ *
+ * 定义侧边栏组件触发的事件，
+ * 用于与父组件通信。
+ *
+ * @interface Emits
+ */
 interface Emits {
+  /** 折叠状态变化事件 */
   (e: 'update:collapsed', value: boolean): void
+  /** 拖拽完成事件 */
   (e: 'drop', info: AntTreeNodeDropEvent): void
 }
 
@@ -212,13 +242,51 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// 侧边栏状态
+/**
+ * 侧边栏宽度状态
+ *
+ * 控制侧边栏的宽度，支持动态调整，
+ * 最小宽度200px，最大宽度500px。
+ *
+ * @type {Ref<number>}
+ */
 const sidebarWidth = ref(270)
+
+/**
+ * 拖拽调整状态
+ *
+ * 标识当前是否正在进行宽度调整拖拽操作。
+ *
+ * @type {Ref<boolean>}
+ */
 const isDragging = ref(false)
+
+/**
+ * 拖拽开始位置
+ *
+ * 记录拖拽开始时的鼠标X坐标。
+ *
+ * @type {Ref<number>}
+ */
 const startX = ref(0)
+
+/**
+ * 拖拽开始宽度
+ *
+ * 记录拖拽开始时的侧边栏宽度。
+ *
+ * @type {Ref<number>}
+ */
 const startWidth = ref(0)
 
-// 拖拽相关状态
+/**
+ * 移动操作防抖定时器
+ *
+ * 用于防止频繁的拖拽移动操作，
+ * 延迟300ms执行实际的API调用。
+ *
+ * @type {Ref<number | null>}
+ */
 const moveDebounceTimer = ref<number | null>(null)
 
 const collapsedValue = computed({
@@ -843,44 +911,7 @@ onUnmounted(() => {
 }
 
 // ==================== 树形组件样式 ====================
-:deep(.ant-tree-node-content-wrapper) {
-  cursor: pointer !important;
-  padding-left: 0 !important;
-
-  &:hover {
-    background-color: #f5f5f5 !important;
-  }
-}
-
-:deep(.ant-tree-drop-indicator) {
-  background-color: #1890ff !important;
-  height: 2px !important;
-}
-
-:deep(.ant-tree-switcher-noop) {
-  display: none !important;
-}
-
-:deep(.ant-tree-switcher_open),
-:deep(.ant-tree-switcher_close) {
-  display: inline-block !important;
-}
-
-// 拖拽时的样式
-:deep(.ant-tree-treenode-dragging) {
-  opacity: 0.5;
-}
-
-:deep(.ant-tree-drop-target) {
-  background-color: #e6f7ff !important;
-}
-
-// 移动中的节点样式
-:deep(.ant-tree-treenode-loading) {
-  .ant-tree-node-content-wrapper {
-    background-color: #f0f8ff !important;
-  }
-}
+// 与 Ant Design 的通用覆写已移至全局样式
 
 // ==================== 拖拽样式 ====================
 .resize-handle {
@@ -907,11 +938,5 @@ onUnmounted(() => {
   }
 }
 
-:deep(.ant-layout-sider-trigger) {
-  background: transparent !important;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.04) !important;
-  }
-}
+// 与 Ant Design 的通用覆写已移至全局样式
 </style>

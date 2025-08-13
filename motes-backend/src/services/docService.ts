@@ -1,10 +1,47 @@
-import { Doc } from '../models/Doc';
+/**
+ * 文档服务类
+ * 
+ * 负责文档树的管理，包括：
+ * - 文档树的创建和更新
+ * - 节点的增删改查
+ * - 文档导入导出
+ * - 与脑图笔记的关联
+ * 
+ */
+
+import { Doc, IDocNode } from '../models/Doc';
 import { Mote } from '../models/Mote';
 import { generateId } from '../utils/idGenerator';
 import { generateDefaultDocTree, defaultMotes } from '../config/defaultData';
+import type { DocTreeNode } from '../types/common';
 
+/**
+ * 文档服务类
+ * 
+ * 负责文档树的管理，包括：
+ * - 文档树的创建和更新
+ * - 节点的增删改查
+ * - 文档导入导出
+ * - 与脑图笔记的关联
+ * 
+ * @class DocService
+ */
 export class DocService {
-  // 获取文档树
+  /**
+   * 获取文档树
+   * 
+   * 获取用户的文档树结构，如果用户没有文档树则创建默认的引导文档树。
+   * 创建默认文档树时会同时创建对应的默认 mote 记录。
+   * 
+   * @param {string} userId - 用户ID
+   * @returns {Promise<{docTree: DocTreeNode}>} 文档树结构
+   * 
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await DocService.getDocTree('user123');
+   * console.log(result.docTree);
+   */
   static async getDocTree(userId: string) {
     let doc = await Doc.findOne({ userId });
     
@@ -18,15 +55,13 @@ export class DocService {
       });
       await doc.save();
       
-      // 创建对应的默认mote
-      try {
-        for (const [, moteData] of Object.entries(defaultMotes)) {
-          await Mote.create(moteData);
-        }
-      } catch (error) {
-        console.error('创建默认mote时出错:', error);
-        // 即使mote创建失败，也不影响文档树的创建
-      }
+      // 创建对应的默认mote（并行执行，不等待完成）
+      Object.values(defaultMotes).forEach(moteData => {
+        Mote.create(moteData).catch(error => {
+          console.error('创建默认mote时出错:', error);
+          // 即使mote创建失败，也不影响文档树的创建
+        });
+      });
     }
 
     return {
@@ -34,8 +69,21 @@ export class DocService {
     };
   }
 
-  // 更新文档树
-  static async updateDocTree(userId: string, docTree: any) {
+  /**
+   * 更新文档树
+   * 
+   * 更新用户的文档树结构，如果文档树不存在则创建新的。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {DocTreeNode} docTree - 新的文档树结构
+   * @returns {Promise<{message: string}>} 更新结果
+   * 
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * await DocService.updateDocTree('user123', newDocTree);
+   */
+  static async updateDocTree(userId: string, docTree: DocTreeNode) {
     let doc = await Doc.findOne({ userId });
     
     if (!doc) {
@@ -51,7 +99,26 @@ export class DocService {
     return { message: '文档树更新成功' };
   }
 
-  // 创建文档节点
+  /**
+   * 创建文档节点
+   * 
+   * 在指定父节点下创建新的文档节点，支持文件夹和脑图笔记两种类型。
+   * 创建脑图笔记节点时会同时创建对应的 mote 记录。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {string} title - 节点标题
+   * @param {string} type - 节点类型 ('folder' | 'mote')
+   * @param {string} parentKey - 父节点key
+   * @returns {Promise<{newNode: DocTreeNode, message: string}>} 新创建的节点和结果消息
+   * 
+   * @throws {400} 当节点类型无效时
+   * @throws {404} 当文档树不存在时
+   * @throws {404} 当父节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await DocService.createNode('user123', '新文件夹', 'folder', 'parentKey');
+   */
   static async createNode(userId: string, title: string, type: string, parentKey: string) {
     // 验证类型
     if (!['folder', 'mote'].includes(type)) {
@@ -78,16 +145,16 @@ export class DocService {
 
     // 生成新节点key
     const newNodeKey = generateId();
-    const newNode = {
+    const newNode: DocTreeNode = {
       key: newNodeKey,
       title,
-      type,
+      type: type as 'folder' | 'mote',
       isDeleted: false,
       children: type === 'folder' ? [] : undefined,
     };
 
     // 递归查找并添加节点
-    const addNodeToTree = (node: any, parentKey: string): boolean => {
+    const addNodeToTree = (node: DocTreeNode, parentKey: string): boolean => {
       if (node.key === parentKey) {
         if (!node.children) {
           node.children = [];
@@ -152,7 +219,23 @@ export class DocService {
     };
   }
 
-  // 创建文档节点副本
+  /**
+   * 创建文档节点副本
+   * 
+   * 复制指定节点及其所有子节点，重新生成所有ID。
+   * 如果复制的节点是mote类型，会同时复制对应的moteTree。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {string} key - 要复制的节点key
+   * @returns {Promise<{duplicatedNode: DocTreeNode, message: string}>} 复制的节点和结果消息
+   * 
+   * @throws {404} 当文档树不存在时
+   * @throws {404} 当节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await DocService.duplicateNode('user123', 'nodeKey');
+   */
   static async duplicateNode(userId: string, key: string) {
     const doc = await Doc.findOne({ userId });
     if (!doc) {
@@ -166,12 +249,12 @@ export class DocService {
     }
 
     // 递归查找节点并创建副本
-    let targetNode: any = null;
-    let parentNode: any = null;
+    let targetNode: IDocNode | null = null;
+    let parentNode: IDocNode | null = null;
 
-    const findNodeAndParent = (node: any, targetKey: string): boolean => {
+    const findNodeAndParent = (node: IDocNode, targetKey: string): boolean => {
       if (node.children) {
-        const index = node.children.findIndex((child: any) => child.key === targetKey);
+        const index = node.children.findIndex((child: IDocNode) => child.key === targetKey);
         if (index !== -1) {
           targetNode = node.children[index];
           parentNode = node;
@@ -199,8 +282,8 @@ export class DocService {
     }
 
     // 递归复制节点及其子节点，重新生成所有ID
-    const duplicateNode = (node: any): any => {
-      const newNode: any = {
+    const duplicateNode = (node: IDocNode): IDocNode => {
+      const newNode: IDocNode = {
         key: generateId(),
         title: node.title + ' (副本)',
         type: node.type,
@@ -208,41 +291,43 @@ export class DocService {
       };
 
       if (node.children && node.children.length > 0) {
-        newNode.children = node.children.map((child: any) => duplicateNode(child));
+        newNode.children = node.children.map((child: IDocNode) => duplicateNode(child));
       }
 
       return newNode;
     };
 
-    const duplicatedNode = duplicateNode(targetNode);
+    const duplicatedNode = duplicateNode(targetNode as IDocNode);
 
     // 将副本插入到原节点下方
-    const insertIndex = parentNode.children.findIndex((child: any) => child.key === key) + 1;
-    parentNode.children.splice(insertIndex, 0, duplicatedNode);
+    if (parentNode && (parentNode as IDocNode).children) {
+      const insertIndex = (parentNode as IDocNode).children!.findIndex((child: IDocNode) => child.key === key) + 1;
+      (parentNode as IDocNode).children!.splice(insertIndex, 0, duplicatedNode);
+    }
 
     // 如果复制的节点是mote类型，需要同时复制对应的moteTree
-    if (targetNode.type === 'mote') {
+    if (targetNode && (targetNode as IDocNode).type === 'mote') {
       try {
         // 查找原mote的moteTree
         const originalMote = await Mote.findOne({ docId: key });
         if (originalMote) {
           // 递归复制moteTree，根节点ID和parentId都使用docKey，其他节点保持原ID
-          const duplicateMoteTree = (node: any, isRoot = true): any => {
-            const newNode: any = {
+          const duplicateMoteTree = (node: Record<string, unknown>, isRoot = true): Record<string, unknown> => {
+            const newNode: Record<string, unknown> = {
               id: isRoot ? duplicatedNode.key : node.id, // 根节点ID使用docKey
               text: node.text,
               collapsed: node.collapsed,
               parentId: isRoot ? duplicatedNode.key : node.parentId, // 根节点的parentId也使用docKey
             };
 
-            if (node.children && node.children.length > 0) {
-              newNode.children = node.children.map((child: any) => duplicateMoteTree(child, false));
+            if (node.children && Array.isArray(node.children) && node.children.length > 0) {
+              newNode.children = node.children.map((child: Record<string, unknown>) => duplicateMoteTree(child, false));
             }
 
             return newNode;
           };
 
-          const duplicatedMoteTree = duplicateMoteTree(originalMote.moteTree);
+          const duplicatedMoteTree = duplicateMoteTree(originalMote.moteTree as unknown as Record<string, unknown>);
 
           // 创建新的Mote记录
           await Mote.create({
@@ -279,7 +364,23 @@ export class DocService {
     };
   }
 
-  // 重命名文档节点
+  /**
+   * 重命名文档节点
+   * 
+   * 修改指定节点的标题。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {string} key - 节点key
+   * @param {string} title - 新的节点标题
+   * @returns {Promise<{updatedNode: DocTreeNode, message: string}>} 更新后的节点和结果消息
+   * 
+   * @throws {404} 当文档树不存在时
+   * @throws {404} 当节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await DocService.renameNode('user123', 'nodeKey', '新标题');
+   */
   static async renameNode(userId: string, key: string, title: string) {
     const doc = await Doc.findOne({ userId });
     if (!doc) {
@@ -293,7 +394,7 @@ export class DocService {
     }
 
     // 递归查找并重命名节点
-    const renameNodeInTree = (node: any, targetKey: string): boolean => {
+    const renameNodeInTree = (node: IDocNode, targetKey: string): boolean => {
       if (node.key === targetKey) {
         node.title = title;
         return true;
@@ -334,7 +435,25 @@ export class DocService {
     };
   }
 
-  // 移动文档节点位置
+  /**
+   * 移动文档节点位置
+   * 
+   * 将指定节点移动到新的父节点下，可以指定插入位置。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {string} key - 要移动的节点key
+   * @param {string} newParentKey - 新的父节点key
+   * @param {number} [position] - 插入位置，可选
+   * @returns {Promise<{message: string}>} 移动结果
+   * 
+   * @throws {404} 当文档树不存在时
+   * @throws {404} 当节点不存在时
+   * @throws {404} 当目标父节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * await DocService.moveNode('user123', 'nodeKey', 'newParentKey', 0);
+   */
   static async moveNode(userId: string, key: string, newParentKey: string, position?: number) {
     const doc = await Doc.findOne({ userId });
     if (!doc) {
@@ -348,12 +467,12 @@ export class DocService {
     }
 
     // 递归查找并移动节点
-    let targetNode: any = null;
-    let sourceParent: any = null;
+    let targetNode: IDocNode | null = null;
+    let sourceParent: IDocNode | null = null;
 
-    const findAndRemoveNode = (node: any, targetKey: string): boolean => {
+    const findAndRemoveNode = (node: IDocNode, targetKey: string): boolean => {
       if (node.children) {
-        const index = node.children.findIndex((child: any) => child.key === targetKey);
+        const index = node.children.findIndex((child: IDocNode) => child.key === targetKey);
         if (index !== -1) {
           targetNode = node.children[index];
           node.children.splice(index, 1);
@@ -382,14 +501,14 @@ export class DocService {
     }
 
     // 添加到新位置
-    const addToNewParent = (node: any, parentKey: string): boolean => {
+    const addToNewParent = (node: IDocNode, parentKey: string): boolean => {
       if (node.key === parentKey) {
         if (!node.children) {
           node.children = [];
         }
         
         const insertPosition = position !== undefined ? Math.min(position, node.children.length) : node.children.length;
-        node.children.splice(insertPosition, 0, targetNode);
+        node.children.splice(insertPosition, 0, targetNode!);
         return true;
       }
       
@@ -407,11 +526,11 @@ export class DocService {
     const added = addToNewParent(doc.docTree, newParentKey);
     if (!added) {
       // 如果添加失败，恢复原位置
-      if (sourceParent) {
-        if (!sourceParent.children) {
-          sourceParent.children = [];
+      if (sourceParent && targetNode) {
+        if (!(sourceParent as IDocNode).children) {
+          (sourceParent as IDocNode).children = [];
         }
-        sourceParent.children.push(targetNode);
+        (sourceParent as IDocNode).children!.push(targetNode);
       }
       
       throw {
@@ -441,7 +560,23 @@ export class DocService {
     return { message: '文档节点移动成功' };
   }
 
-  // 软删除文档节点
+  /**
+   * 软删除文档节点
+   * 
+   * 将指定节点标记为已删除，但不从数据库中物理删除。
+   * 软删除的节点可以通过恢复操作重新激活。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {string} key - 要删除的节点key
+   * @returns {Promise<{message: string}>} 删除结果
+   * 
+   * @throws {404} 当文档树不存在时
+   * @throws {404} 当节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * await DocService.softDeleteNode('user123', 'nodeKey');
+   */
   static async softDeleteNode(userId: string, key: string) {
     const doc = await Doc.findOne({ userId });
     if (!doc) {
@@ -455,7 +590,7 @@ export class DocService {
     }
 
     // 递归查找并软删除节点
-    const softDeleteNode = (node: any, targetKey: string): boolean => {
+    const softDeleteNode = (node: IDocNode, targetKey: string): boolean => {
       if (node.key === targetKey) {
         node.isDeleted = true;
         return true;
@@ -503,7 +638,24 @@ export class DocService {
     return { message: '文档节点删除成功' };
   }
 
-  // 硬删除文档节点
+  /**
+   * 硬删除文档节点
+   * 
+   * 从数据库中永久删除指定节点，只能删除已软删除的节点。
+   * 此操作不可逆，请谨慎使用。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {string} key - 要删除的节点key
+   * @returns {Promise<{message: string}>} 删除结果
+   * 
+   * @throws {400} 当节点未被软删除时
+   * @throws {404} 当文档树不存在时
+   * @throws {404} 当节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * await DocService.hardDeleteNode('user123', 'nodeKey');
+   */
   static async hardDeleteNode(userId: string, key: string) {
     const doc = await Doc.findOne({ userId });
     if (!doc) {
@@ -517,9 +669,9 @@ export class DocService {
     }
 
     // 递归查找并硬删除节点（只能删除已软删除的节点）
-    const hardDeleteNode = (node: any, targetKey: string): { success: boolean, error?: string } => {
+    const hardDeleteNode = (node: IDocNode, targetKey: string): { success: boolean, error?: string } => {
       if (node.children) {
-        const index = node.children.findIndex((child: any) => child.key === targetKey);
+        const index = node.children.findIndex((child: IDocNode) => child.key === targetKey);
         if (index !== -1) {
           const targetNode = node.children[index];
           
@@ -577,7 +729,22 @@ export class DocService {
     return { message: '文档节点永久删除成功' };
   }
 
-  // 恢复文档节点
+  /**
+   * 恢复文档节点
+   * 
+   * 恢复已软删除的节点，将其标记为未删除状态。
+   * 
+   * @param {string} userId - 用户ID
+   * @param {string} key - 要恢复的节点key
+   * @returns {Promise<{message: string}>} 恢复结果
+   * 
+   * @throws {404} 当文档树不存在时
+   * @throws {404} 当节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * await DocService.restoreNode('user123', 'nodeKey');
+   */
   static async restoreNode(userId: string, key: string) {
     const doc = await Doc.findOne({ userId });
     if (!doc) {
@@ -591,7 +758,7 @@ export class DocService {
     }
 
     // 递归查找并恢复节点
-    const restoreNode = (node: any, targetKey: string): boolean => {
+    const restoreNode = (node: IDocNode, targetKey: string): boolean => {
       if (node.key === targetKey) {
         node.isDeleted = false;
         return true;

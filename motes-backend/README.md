@@ -2,27 +2,34 @@
 
 ## 📖 项目简介
 
-Motes 后端 API 服务是思维导图与笔记管理平台的核心服务层，提供 RESTful API 接口，支持用户认证、文档管理、思维导图数据存储等功能，为前端应用提供强大的数据支撑。
+Motes 后端 API 服务是脑图笔记Web应用的核心服务层，提供 RESTful API 接口，支持用户认证、文档管理、脑图笔记数据存储和AI生成等功能，为前端应用提供强大的数据支撑。
 
-Motes 后端致力于提供稳定、高效、安全的 API 服务，通过 RESTful 设计原则和 JWT 认证机制，确保用户数据的安全性和系统的可扩展性。采用 MongoDB 作为数据存储，支持复杂的数据结构和高效的查询操作。
+Motes 后端致力于提供稳定、高效、安全的 API 服务，通过 RESTful 设计原则和 JWT 认证机制，确保用户数据的安全性和系统的可扩展性。采用 MongoDB 作为数据存储，支持复杂的数据结构和高效的查询操作。集成多种大语言模型服务，提供智能化的脑图笔记生成和文档处理功能。
 
 ## ✨ 主要功能
 
-### 🔐 用户认证系统
-- **JWT 认证**：基于 JSON Web Token 的用户身份验证
-- **密码加密**：使用 bcryptjs 进行密码安全加密
-- **用户注册登录**：完整的用户注册和登录流程
-- **Token 刷新**：支持访问令牌的自动刷新机制
+### 🤖 AI 智能功能
+- **AI 生成脑图笔记**：基于主题或文本内容自动生成结构化脑图笔记
+- **文档解析处理**：支持 PDF、DOCX、Markdown 等多种文档格式的智能解析
+- **节点智能扩展**：基于现有节点内容使用 AI 生成子节点（AI生枝）
+- **多模型支持**：集成 OpenAI兼容、Ollama 等多种大语言模型服务
+- **代理配置**：支持 HTTP 代理配置，适应不同网络环境
+
+### 🧠 脑图笔记数据
+- **Mote 节点管理**：脑图笔记节点的增删改查操作
+- **节点关系处理**：支持节点间的父子关系和连接关系
+- **数据同步**：实时数据同步和一致性保证
 
 ### 📄 文档管理
 - **文档 CRUD**：完整的文档创建、读取、更新、删除操作
 - **用户权限控制**：基于用户身份的数据访问控制
 - **文档元数据**：支持文档标题、描述、创建时间等元信息管理
 
-### 🧠 思维导图数据
-- **Mote 节点管理**：思维导图节点的增删改查操作
-- **节点关系处理**：支持节点间的父子关系和连接关系
-- **数据同步**：实时数据同步和一致性保证
+### 🔐 用户认证系统
+- **JWT 认证**：基于 JSON Web Token 的用户身份验证
+- **密码加密**：使用 bcryptjs 进行密码安全加密
+- **用户注册登录**：完整的用户注册和登录流程
+- **Token 刷新**：支持访问令牌的自动刷新机制
 
 ### 🛡️ 安全特性
 - **CORS 配置**：跨域资源共享的安全配置
@@ -46,11 +53,17 @@ Motes 后端致力于提供稳定、高效、安全的 API 服务，通过 RESTf
 - **bcryptjs 2.4.3** - 密码哈希加密
 - **cors 2.8.5** - 跨域资源共享中间件
 
+### AI 与文档处理
+- **axios 1.11.0** - HTTP 客户端，用于 LLM API 调用
+- **https-proxy-agent 7.0.6** - HTTP 代理支持
+- **mammoth 1.6.0** - Word 文档解析
+- **pdf-parse 1.1.1** - PDF 文档解析
+- **compromise 14.14.4** - 自然语言处理工具
+- **multer 1.4.5-lts.1** - 文件上传中间件
+
 ### 工具库
 - **nanoid 5.1.5** - 唯一 ID 生成器
 - **dotenv 16.3.1** - 环境变量管理
-- **multer 1.4.5-lts.1** - 文件上传中间件
-- **axios 1.11.0** - HTTP 客户端
 
 ### 开发工具
 - **ESLint 9.32.0** - 代码质量检查
@@ -69,7 +82,8 @@ motes-backend/
 │   ├── controllers/      # 控制器层
 │   │   ├── userController.ts
 │   │   ├── docController.ts
-│   │   └── moteController.ts
+│   │   ├── moteController.ts
+│   │   └── aiController.ts
 │   ├── middleware/       # 中间件
 │   │   └── auth.ts      # 认证中间件
 │   ├── models/          # 数据模型
@@ -79,14 +93,20 @@ motes-backend/
 │   ├── routes/          # 路由定义
 │   │   ├── user.ts
 │   │   ├── doc.ts
-│   │   └── mote.ts
+│   │   ├── mote.ts
+│   │   └── ai.ts
 │   ├── services/        # 业务逻辑层
 │   │   ├── userService.ts
 │   │   ├── docService.ts
-│   │   └── moteService.ts
+│   │   ├── moteService.ts
+│   │   ├── llmService.ts
+│   │   ├── documentParser.ts
+│   │   └── textPreprocess.ts
+│   ├── types/           # 类型定义
 │   ├── utils/           # 工具函数
 │   │   ├── jwt.ts       # JWT 工具
-│   │   └── idGenerator.ts # ID 生成器
+│   │   ├── idGenerator.ts # ID 生成器
+│   │   └── outlineToMote.ts # 大纲转脑图笔记工具
 │   └── app.ts          # 应用入口文件
 ├── .env.example        # 环境变量示例
 ├── eslint.config.js    # ESLint 配置
@@ -118,10 +138,13 @@ cp env.example .env
 ```bash
 # 数据库配置
 MONGODB_URI=mongodb://localhost:27017/motes
+MONGODB_DB_NAME=motes
 
 # JWT配置
 JWT_SECRET=your-secret-key-change-in-production
 JWT_EXPIRES_IN=7d
+REFRESH_TOKEN_SECRET=your-refresh-secret-change-in-production
+REFRESH_TOKEN_EXPIRES_IN=30d
 
 # 服务器配置
 PORT=3000
@@ -129,6 +152,22 @@ NODE_ENV=development
 
 # 跨域配置
 CORS_ORIGIN=http://localhost:5173
+
+# 限流配置
+RATE_LIMIT_WINDOW_MS=3000000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# AI 服务配置（可选）
+# OpenAI API 配置
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_BASE_URL=https://api.openai.com/v1
+
+# Ollama 配置
+OLLAMA_BASE_URL=http://localhost:11434
+
+# 代理配置（可选）
+HTTP_PROXY=http://proxy-server:port
+HTTPS_PROXY=http://proxy-server:port
 ```
 
 ### 开发模式
@@ -173,6 +212,12 @@ npm run lint:fix
 - **索引优化**：合理设置数据库索引提升查询性能
 - **数据验证**：模型级别的数据验证和类型检查
 
+### AI 服务集成
+- **多模型支持**：支持 OpenAI兼容、Ollama 等多种 LLM 服务
+- **代理配置**：支持 HTTP 代理，适应企业网络环境
+- **文档解析**：支持 PDF、DOCX、Markdown 等多种格式
+- **智能生成**：基于内容自动生成结构化脑图笔记
+
 ### 安全规范
 - **JWT 认证**：基于 Token 的身份验证机制
 - **密码加密**：使用 bcryptjs 进行密码安全存储
@@ -192,10 +237,17 @@ npm run lint:fix
 - ✅ 用户权限控制
 - ✅ 文档元数据管理
 
-### 思维导图数据
+### 脑图笔记数据
 - ✅ Mote 节点管理
 - ✅ 节点关系处理
 - ✅ 数据同步机制
+
+### AI 智能功能
+- ✅ AI 生成脑图笔记
+- ✅ 文档智能解析
+- ✅ 节点智能扩展
+- ✅ 多模型服务支持
+- ✅ 代理配置支持
 
 ### API 特性
 - ✅ RESTful API 设计
@@ -223,14 +275,85 @@ npm run lint:fix
 - `DELETE /api/doc/node/:key/permanent` - 硬删除文档节点
 - `PUT /api/doc/node/:key/restore` - 恢复文档节点
 
-### 思维导图相关接口
+### 脑图笔记相关接口
 - `GET /api/mote/:docKey` - 获取脑图笔记
 - `PUT /api/mote/:docKey` - 更新脑图笔记
 - `GET /api/mote/:docKey/export` - 导出脑图笔记
 - `POST /api/mote/import` - 导入脑图笔记
 
+### AI 相关接口
+- `POST /api/ai/generate-mote` - AI 生成脑图笔记（基于文本）
+- `POST /api/ai/generate-mote-file` - AI 生成脑图笔记（基于文件）
+- `POST /api/ai/expand-node` - AI 节点扩展（AI生枝）
+
 ### 系统接口
 - `GET /api/health` - 健康检查
+
+## 🤖 AI 功能详解
+
+### AI 生成脑图笔记
+支持两种输入方式生成脑图笔记：
+
+#### 基于文本生成
+```bash
+POST /api/ai/generate-mote
+Content-Type: application/json
+
+{
+  "inputType": "theme",
+  "theme": "人工智能发展史",
+  "docParentKey": "parent-key",
+  "title": "AI发展史",
+  "provider": {
+    "type": "openai",
+    "model": "gpt-3.5-turbo"
+  },
+  "options": {
+    "depthLimit": 4,
+    "branchingFactor": 4,
+    "language": "中文"
+  }
+}
+```
+
+#### 基于文件生成
+```bash
+POST /api/ai/generate-mote-file
+Content-Type: multipart/form-data
+
+document: [PDF/DOCX/MD文件]
+title: "文档标题"
+options: {
+  "depthLimit": 4,
+  "branchingFactor": 4
+}
+```
+
+### 文档解析支持
+- **PDF 文档**：使用 pdf-parse 解析文本内容
+- **Word 文档**：使用 mammoth 解析 DOCX/DOC 格式
+- **Markdown**：直接解析 Markdown 文本
+- **纯文本**：支持 TXT 等纯文本格式
+
+### 节点智能扩展
+```bash
+POST /api/ai/expand-node
+Content-Type: application/json
+
+{
+  "nodeText": "当前节点内容",
+  "context": "上下文信息",
+  "options": {
+    "childCount": 3,
+    "direction": "expand"
+  }
+}
+```
+
+### 支持的 LLM 服务
+- **OpenAI**：GPT-3.5-turbo、GPT-4 等模型
+- **Ollama**：本地部署的 Llama、Mistral 等模型
+- **自定义代理**：支持企业内网代理配置
 
 ## 🧪 代码质量检查
 
@@ -257,18 +380,21 @@ npx tsc --noEmit
 - 使用压缩中间件减少传输大小
 - 实现 API 限流保护
 
+### AI 服务优化
+- 支持并发请求处理
+- 实现请求超时和重试机制
+- 优化文档解析性能
+
 ## 🔗 相关链接
 
-- [前端文档](../motes-frontend/README.md)
-- [API 文档](../API_DOCUMENTATION.md)
+- [本项目前端文档](../motes-frontend/README.md)
+- [本项目 API 文档](../API_DOCUMENTATION.md)
 - [Express.js 文档](https://expressjs.com/)
 - [Mongoose 文档](https://mongoosejs.com/)
 - [MongoDB 文档](https://docs.mongodb.com/)
-
-## 📄 许可证
-
-本项目采用 MIT 许可证。
-
-## 🤝 贡献指南
+- [OpenAI API 文档](https://platform.openai.com/docs)
+- [Gemini API 文档](https://ai.google.dev/gemini-api/docs/openai)
+- [Deepseek API 文档](https://api-docs.deepseek.com/)
+- [Ollama 文档](https://ollama.ai/docs)
 
 **Motes** - Connect your motes. 

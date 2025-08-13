@@ -1,3 +1,14 @@
+<!--
+  文档网格视图组件
+
+  主要功能：
+  - 文档和文件夹的网格展示
+  - 支持不同页面类型（文档、文件夹、回收站）
+  - 右键菜单操作（新建、重命名、删除、移动等）
+  - 文档导入导出功能
+  - 拖拽移动文档
+  - 加载状态和空状态处理
+-->
 <template>
   <div class="doc-grid">
     <h1 class="doc-title">{{ getTitle() }}</h1>
@@ -77,17 +88,83 @@ import DocTreeModal from './DocTreeModal.vue'
 const route = useRoute()
 const router = useRouter()
 const docStore = useDocStore()
-// 移动弹窗状态
+
+/**
+ * 移动弹窗状态
+ *
+ * 控制文档移动选择弹窗的显示状态。
+ *
+ * @type {Ref<boolean>}
+ */
 const moveModalOpen = ref(false)
+
+/**
+ * 正在移动的节点键值
+ *
+ * 记录当前正在移动的文档或文件夹的键值。
+ *
+ * @type {Ref<string | null>}
+ */
 const movingNodeKey = ref<string | null>(null)
-// 重命名对话框状态
+
+/**
+ * 重命名对话框状态
+ *
+ * 控制重命名对话框的显示状态。
+ *
+ * @type {Ref<boolean>}
+ */
 const renameModalVisible = ref(false)
+
+/**
+ * 重命名对话框标题
+ *
+ * 重命名对话框的标题文本。
+ *
+ * @type {Ref<string>}
+ */
 const renameModalTitle = ref('')
+
+/**
+ * 重命名输入值
+ *
+ * 重命名对话框中的输入框值。
+ *
+ * @type {Ref<string>}
+ */
 const renameModalValue = ref('')
+
+/**
+ * 重命名目标节点
+ *
+ * 当前正在重命名的文档或文件夹节点。
+ *
+ * @type {Ref<DocNode | null>}
+ */
 const renameModalTarget = ref<DocNode | null>(null)
+
+/**
+ * 重命名输入框引用
+ *
+ * 重命名对话框输入框的DOM引用。
+ *
+ * @type {Ref<HTMLInputElement>}
+ */
 const renameInputRef = ref<HTMLInputElement>()
 
-// 根据路由确定类型
+/**
+ * 根据路由确定页面类型
+ *
+ * 根据当前路由路径判断页面类型，
+ * 用于控制显示内容和操作权限。
+ *
+ * @type {ComputedRef<'documents' | 'folder' | 'trash'>}
+ *
+ * @example
+ * // 在 /documents 页面返回 'documents'
+ * // 在 /folder/123 页面返回 'folder'
+ * // 在 /trash 页面返回 'trash'
+ */
 const effectiveType = computed(() => {
   if (route.path === '/documents') {
     return 'documents'

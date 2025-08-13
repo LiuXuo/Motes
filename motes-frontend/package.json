@@ -1,9 +1,11 @@
 {
   "name": "motes-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Motes 前端Web项目",
   "private": true,
   "type": "module",
+  "author": "LiuXuo",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",

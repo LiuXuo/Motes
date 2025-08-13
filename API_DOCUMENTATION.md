@@ -10,6 +10,8 @@ Motes 是一个思维导图/大纲笔记应用，提供用户管理、文档管�
 - **数据库**: MongoDB
 - **认证**: JWT
 - **数据验证**: Joi/Zod
+- **AI 服务**: OpenAI API / Ollama 本地模型
+- **文档解析**: PDF、Word、Markdown 支持
 
 ## 基础信息
 
@@ -989,6 +991,292 @@ Content-Type: application/json
 }
 ```
 
+## AI 功能接口
+
+### AI 生成脑图笔记
+```http
+POST /api/ai/generate-mote
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "inputType": "theme",
+  "theme": "人工智能发展史",
+  "docParentKey": "parent-key",
+  "title": "AI发展史",
+  "provider": {
+    "type": "openai",
+    "model": "gpt-3.5-turbo",
+    "apiKey": "your-api-key"
+  },
+  "options": {
+    "depthLimit": 4,
+    "branchingFactor": 4,
+    "language": "中文",
+    "maxTokens": 1200
+  }
+}
+```
+
+**请求参数说明**:
+- `inputType`: 输入类型，支持 "theme"（主题）或 "text"（文本）
+- `theme`: 主题内容（当 inputType 为 "theme" 时使用）
+- `text`: 文本内容（当 inputType 为 "text" 时使用）
+- `docParentKey`: 父文档节点key，必填
+- `title`: 生成的脑图标题，可选
+- `provider`: LLM 提供商配置
+  - `type`: 提供商类型，支持 "openai" 或 "ollama"
+  - `model`: 模型名称
+  - `apiKey`: API密钥（OpenAI 需要）
+  - `baseUrl`: 基础URL（可选，支持自定义端点）
+  - `temperature`: 温度参数（可选，控制输出随机性）
+  - `top_p`: Top-p 参数（可选，控制输出多样性）
+- `options`: 生成选项
+  - `depthLimit`: 最大层级深度，默认 4
+  - `branchingFactor`: 每层最大分支数，默认 4
+  - `language`: 输出语言，默认 "中文"
+  - `maxTokens`: 最大token数，默认 1200
+
+**响应**:
+```json
+{
+  "success": true,
+  "data": {
+    "title": "AI发展史",
+    "moteTree": {
+      "id": "Ab3cD4eF",
+      "text": "AI发展史",
+      "collapsed": false,
+      "parentId": "",
+      "children": [
+        {
+          "id": "Bq2Rf8vL",
+          "text": "早期发展",
+          "collapsed": false,
+          "parentId": "Ab3cD4eF",
+          "children": [
+            {
+              "id": "Cw5Ht3nX",
+              "text": "图灵测试",
+              "collapsed": false,
+              "parentId": "Bq2Rf8vL",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "docParentKey": "parent-key",
+    "created": false,
+    "fallbackUsed": false
+  }
+}
+```
+
+**错误响应**:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "缺少必要参数"
+  }
+}
+```
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "PROVIDER_MODEL_NOT_FOUND",
+    "message": "模型不存在或未安装",
+    "details": "Ollama 未找到模型: llama2（baseUrl=http://localhost:11434/v1）。请先运行: ollama pull llama2"
+  }
+}
+```
+
+### AI 生成脑图笔记（文件上传）
+```http
+POST /api/ai/generate-mote-file
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+Form Data:
+- document: 上传的文档文件（PDF/DOCX/MD/TXT）
+- docParentKey: 父文档节点key
+- title: 生成的标题（可选）
+- create: 是否直接创建（可选，默认false）
+- provider: LLM 提供商配置（JSON字符串）
+- options: 生成选项（JSON字符串）
+```
+
+**支持的文件格式**:
+- PDF 文档 (.pdf)
+- Word 文档 (.docx, .doc)
+- Markdown 文件 (.md)
+- 纯文本文件 (.txt)
+
+**文件大小限制**: 20MB
+
+**响应**:
+```json
+{
+  "success": true,
+  "data": {
+    "title": "文档解析结果",
+    "moteTree": {
+      "id": "Ab3cD4eF",
+      "text": "文档解析结果",
+      "collapsed": false,
+      "parentId": "",
+      "children": [
+        {
+          "id": "Bq2Rf8vL",
+          "text": "第一章",
+          "collapsed": false,
+          "parentId": "Ab3cD4eF",
+          "children": []
+        }
+      ]
+    },
+    "docParentKey": "parent-key",
+    "created": false,
+    "fallbackUsed": false,
+    "parsedMeta": {
+      "mimeType": "application/pdf",
+      "fileName": "document.pdf",
+      "ext": "pdf",
+      "source": "pdf"
+    }
+  }
+}
+```
+
+**错误响应**:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "缺少上传文件"
+  }
+}
+```
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "EMPTY_CONTENT",
+    "message": "无法从文档中提取有效文本"
+  }
+}
+```
+
+### AI 节点扩展（AI生枝）
+```http
+POST /api/ai/expand-node
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "moteTree": {
+    "id": "Ab3cD4eF",
+    "text": "人工智能",
+    "collapsed": false,
+    "parentId": "",
+    "children": [
+      {
+        "id": "Bq2Rf8vL",
+        "text": "机器学习",
+        "collapsed": false,
+        "parentId": "Ab3cD4eF",
+        "children": []
+      }
+    ]
+  },
+  "selectedNodeId": "Bq2Rf8vL",
+  "selectedNodeText": "机器学习",
+  "provider": {
+    "type": "openai",
+    "model": "gpt-3.5-turbo",
+    "apiKey": "your-api-key"
+  },
+  "options": {
+    "maxNewNodes": 4,
+    "depth": 2,
+    "language": "中文"
+  }
+}
+```
+
+**请求参数说明**:
+- `moteTree`: 当前完整的脑图树结构
+- `selectedNodeId`: 选中要扩展的节点ID
+- `selectedNodeText`: 选中节点的文本内容
+- `provider`: LLM 提供商配置（同生成接口）
+- `options`: 扩展选项
+  - `maxNewNodes`: 最大新节点数，默认 4，最大 16
+  - `depth`: 最大深度，默认 4，最大 16
+  - `language`: 输出语言，默认 "中文"
+
+**响应**:
+```json
+{
+  "success": true,
+  "data": {
+    "expandedNode": {
+      "text": "机器学习",
+      "children": [
+        {
+          "text": "监督学习",
+          "children": [
+            {
+              "text": "分类算法",
+              "children": [
+                {"text": "决策树", "children": []},
+                {"text": "支持向量机", "children": []}
+              ]
+            },
+            {"text": "回归算法", "children": []}
+          ]
+        },
+        {
+          "text": "无监督学习",
+          "children": [
+            {"text": "聚类算法", "children": []},
+            {"text": "降维技术", "children": []}
+          ]
+        }
+      ]
+    },
+    "fallbackUsed": false
+  }
+}
+```
+
+**错误响应**:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "缺少必要参数"
+  }
+}
+```
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "LLM_INVALID_OUTPUT",
+    "message": "模型输出不符合要求（非合法JSON）",
+    "details": "请尝试更换模型或简化/收紧提示词后重试"
+  }
+}
+```
+
 ## 错误响应格式
 
 ### 认证错误
@@ -1049,6 +1337,50 @@ Content-Type: application/json
 }
 ```
 
+### AI 服务错误
+```json
+{
+  "success": false,
+  "error": {
+    "code": "PROVIDER_MODEL_NOT_FOUND",
+    "message": "模型不存在或未安装",
+    "details": "Ollama 未找到模型: llama2。请先运行: ollama pull llama2"
+  }
+}
+```
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "PROVIDER_ERROR",
+    "message": "模型调用失败",
+    "details": "上游服务异常"
+  }
+}
+```
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "LLM_INVALID_OUTPUT",
+    "message": "模型输出不符合要求（非合法JSON）",
+    "details": "请尝试更换模型或简化/收紧提示词后重试"
+  }
+}
+```
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "EMPTY_CONTENT",
+    "message": "无法从文档中提取有效文本"
+  }
+}
+```
+
 ## 状态码说明
 
 - `200`: 请求成功
@@ -1058,7 +1390,9 @@ Content-Type: application/json
 - `403`: 禁止访问
 - `404`: 资源不存在
 - `409`: 冲突（如用户名已存在）
+- `413`: 请求实体过大（如文件超过大小限制）
 - `500`: 服务器内部错误
+- `502`: 网关错误（如 AI 服务调用失败）
 
 ## 认证说明
 
@@ -1098,24 +1432,42 @@ Token 格式为 JWT，包含用户ID和过期时间信息。
 - **标题后缀**: 副本标题会自动添加 " (副本)" 后缀以区分
 - **位置插入**: 副本会插入到原节点的正下方位置
 
-## 数据库索引建议
+### AI 功能特性
+- **多模型支持**: 支持 OpenAI API 和 Ollama 本地模型
+- **代理配置**: 支持 HTTP/HTTPS 代理配置
+- **文档解析**: 支持 PDF、Word、Markdown 等多种文档格式
+- **文本预处理**: 自动清洗和标准化文本内容
+- **智能扩展**: 基于上下文智能生成相关子节点
+- **错误处理**: 完善的错误处理和兜底机制
+- **格式验证**: 严格的输出格式验证和解析
 
-```typescript
-// 用户集合索引
-db.users.createIndex({ "username": 1 }, { unique: true });
-db.users.createIndex({ "email": 1 }, { unique: true });
+### AI 提供商配置
 
-// 文档集合索引
-db.docs.createIndex({ "userId": 1 });
-db.docs.createIndex({ "userId": 1, "docTree.key": 1 });
-
-// 脑图笔记集合索引
-db.motes.createIndex({ "docId": 1 }, { unique: true });
+#### OpenAI 配置
+```json
+{
+  "type": "openai",
+  "model": "gpt-3.5-turbo",
+  "apiKey": "your-openai-api-key",
+  "baseUrl": "https://api.openai.com/v1",
+  "temperature": 0.7,
+  "top_p": 0.9
+}
 ```
 
-## 部署说明
+#### Ollama 配置
+```json
+{
+  "type": "ollama",
+  "model": "llama2",
+  "baseUrl": "http://localhost:11434/v1",
+  "temperature": 0.2,
+  "top_p": 0.9
+}
+```
 
-### 环境变量
+### 环境变量配置
+
 ```bash
 # 数据库配置
 MONGODB_URI=mongodb://localhost:27017/motes
@@ -1137,7 +1489,33 @@ CORS_ORIGIN=http://localhost:5173
 # 限流配置
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
+
+# AI 服务配置
+OPENAI_BASE_URL=https://api.openai.com/v1
+OLLAMA_BASE_URL=http://localhost:11434/v1
+LLM_REQ_TIMEOUT_MS=300000
+
+# 代理配置（可选）
+HTTP_PROXY=http://proxy.example.com:8080
+HTTPS_PROXY=http://proxy.example.com:8080
 ```
+
+## 数据库索引建议
+
+```typescript
+// 用户集合索引
+db.users.createIndex({ "username": 1 }, { unique: true });
+db.users.createIndex({ "email": 1 }, { unique: true });
+
+// 文档集合索引
+db.docs.createIndex({ "userId": 1 });
+db.docs.createIndex({ "userId": 1, "docTree.key": 1 });
+
+// 脑图笔记集合索引
+db.motes.createIndex({ "docId": 1 }, { unique: true });
+```
+
+## 部署说明
 
 ### 启动命令
 ```bash
@@ -1166,4 +1544,45 @@ curl -X POST http://localhost:3000/api/user/login \
 # 获取文档树
 curl -X GET http://localhost:3000/api/doc/tree \
   -H "Authorization: Bearer <your-token>"
+
+# AI 生成脑图笔记
+curl -X POST http://localhost:3000/api/ai/generate-mote \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inputType": "theme",
+    "theme": "人工智能发展史",
+    "docParentKey": "parent-key",
+    "title": "AI发展史",
+    "provider": {
+      "type": "openai",
+      "model": "gpt-3.5-turbo",
+      "apiKey": "your-api-key"
+    },
+    "options": {
+      "depthLimit": 4,
+      "branchingFactor": 4,
+      "language": "中文"
+    }
+  }'
+
+# AI 节点扩展
+curl -X POST http://localhost:3000/api/ai/expand-node \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "moteTree": {"id":"root","text":"人工智能","children":[{"id":"node1","text":"机器学习","children":[]}]},
+    "selectedNodeId": "node1",
+    "selectedNodeText": "机器学习",
+    "provider": {
+      "type": "openai",
+      "model": "gpt-3.5-turbo",
+      "apiKey": "your-api-key"
+    },
+    "options": {
+      "maxNewNodes": 4,
+      "depth": 2,
+      "language": "中文"
+    }
+  }'
 ``` 

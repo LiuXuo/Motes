@@ -1,12 +1,29 @@
+<!--
+  用户认证页面组件
+
+  主要功能：
+  - 提供用户登录和注册功能
+  - 支持登录/注册模式切换
+  - 表单验证和错误处理
+  - 平滑的动画过渡效果
+  - 响应式设计适配
+
+  页面结构：
+  - 头部：应用标题和描述
+  - 切换：登录/注册模式切换
+  - 表单：动态表单内容
+  - 底部：操作提示信息
+-->
 <template>
   <div class="auth-container">
     <div class="auth-card">
+      <!-- 头部区域：应用标题和描述 -->
       <div class="auth-header">
         <h1>Motes</h1>
-        <p>思维导图与笔记管理</p>
+        <p>思维导图 / 大纲笔记</p>
       </div>
 
-      <!-- 切换按钮 -->
+      <!-- 认证模式切换区域 -->
       <div class="auth-tabs">
         <a-segmented
           v-model:value="authMode"
@@ -20,7 +37,7 @@
         />
       </div>
 
-      <!-- 表单容器 -->
+      <!-- 表单容器：支持动态高度和动画 -->
       <div class="form-container" :style="{ height: containerHeight + 'px' }">
         <!-- 登录表单 -->
         <transition name="form-fade" mode="out-in" @enter="onFormEnter" @leave="onFormLeave">
@@ -152,33 +169,75 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * 用户认证页面组件逻辑
+ *
+ * 使用 Composition API 管理认证状态和表单交互，
+ * 包括登录/注册模式切换、表单验证、动画效果和路由导航。
+ */
+
 import { ref, nextTick, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 
+// ==================== 路由和状态管理 ====================
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-// 切换状态
+// ==================== 认证模式管理 ====================
+/**
+ * 当前认证模式
+ *
+ * 控制当前显示的是登录表单还是注册表单。
+ *
+ * @type {Ref<'login' | 'register'>}
+ */
 const authMode = ref<'login' | 'register'>('login')
+
+/**
+ * 是否为登录模式
+ *
+ * 计算属性，用于条件渲染登录表单。
+ *
+ * @type {ComputedRef<boolean>}
+ */
 const isLogin = computed(() => authMode.value === 'login')
 
-// 检查URL参数，自动切换到注册模式
+/**
+ * 检查URL参数并设置认证模式
+ *
+ * 组件挂载时检查URL查询参数，
+ * 如果存在 mode=register 则自动切换到注册模式。
+ */
 onMounted(() => {
   if (route.query.mode === 'register') {
     authMode.value = 'register'
   }
 })
 
-// 表单数据
+// ==================== 表单数据管理 ====================
+/**
+ * 登录表单数据
+ *
+ * 包含用户名和密码字段。
+ *
+ * @type {Ref<{username: string, password: string}>}
+ */
 const loginForm = ref({
   username: '',
   password: '',
 })
 
+/**
+ * 注册表单数据
+ *
+ * 包含用户名、邮箱、密码和确认密码字段。
+ *
+ * @type {Ref<{username: string, email: string, password: string, confirmPassword: string}>}
+ */
 const registerForm = ref({
   username: '',
   email: '',
@@ -186,14 +245,39 @@ const registerForm = ref({
   confirmPassword: '',
 })
 
+/**
+ * 加载状态
+ *
+ * 从用户 Store 获取当前加载状态。
+ *
+ * @type {ComputedRef<boolean>}
+ */
 const isLoading = computed(() => userStore.isLoading)
 
-// 容器高度管理
+// ==================== 容器高度管理 ====================
+/**
+ * 表单容器高度
+ *
+ * 动态计算表单容器的高度，确保动画效果流畅。
+ *
+ * @type {Ref<number>}
+ */
 const containerHeight = ref(0)
+
+/** 登录表单DOM引用 */
 const loginFormRef = ref<HTMLElement>()
+
+/** 注册表单DOM引用 */
 const registerFormRef = ref<HTMLElement>()
 
-// 监听authMode变化
+/**
+ * 监听认证模式变化并调整容器高度
+ *
+ * 当用户在登录和注册模式间切换时，
+ * 动态调整容器高度以适应不同表单的高度。
+ *
+ * @param {string} newMode - 新的认证模式
+ */
 watch(authMode, async (newMode) => {
   await nextTick()
   if (newMode === 'login' && loginFormRef.value) {
@@ -203,7 +287,11 @@ watch(authMode, async (newMode) => {
   }
 })
 
-// 初始化高度
+/**
+ * 初始化容器高度
+ *
+ * 组件挂载后设置初始容器高度。
+ */
 onMounted(async () => {
   await nextTick()
   if (loginFormRef.value) {
@@ -211,19 +299,45 @@ onMounted(async () => {
   }
 })
 
-// 表单切换动画回调
+// ==================== 动画回调函数 ====================
+/**
+ * 表单进入动画回调
+ *
+ * 当表单进入时更新容器高度。
+ *
+ * @param {Element} el - 进入的DOM元素
+ */
 const onFormEnter = (el: Element) => {
   const form = el as HTMLElement
   containerHeight.value = form.offsetHeight
 }
 
+/**
+ * 表单离开动画回调
+ *
+ * 当表单离开时更新容器高度。
+ *
+ * @param {Element} el - 离开的DOM元素
+ */
 const onFormLeave = (el: Element) => {
   const form = el as HTMLElement
   containerHeight.value = form.offsetHeight
 }
 
-// 登录处理
+// ==================== 表单处理函数 ====================
+/**
+ * 处理登录表单提交
+ *
+ * 验证表单数据，调用用户 Store 的登录方法，
+ * 处理登录结果并导航到相应页面。
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {Error} 当表单验证失败时
+ * @throws {Error} 当登录请求失败时
+ */
 const handleLogin = async () => {
+  // 表单验证
   if (!loginForm.value.username || !loginForm.value.password) {
     message.error('请输入用户名和密码')
     return
@@ -239,13 +353,24 @@ const handleLogin = async () => {
     } else {
       message.error(result.error?.details || result.error?.message || '登录失败')
     }
-  } catch (error) {
+  } catch {
     message.error('登录失败，请重试')
   }
 }
 
-// 注册处理
+/**
+ * 处理注册表单提交
+ *
+ * 验证表单数据，包括必填项检查、密码一致性验证、
+ * 密码长度验证和邮箱格式验证，然后调用用户 Store 的注册方法。
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {Error} 当表单验证失败时
+ * @throws {Error} 当注册请求失败时
+ */
 const handleRegister = async () => {
+  // 必填项验证
   if (
     !registerForm.value.username ||
     !registerForm.value.email ||
@@ -256,17 +381,19 @@ const handleRegister = async () => {
     return
   }
 
+  // 密码一致性验证
   if (registerForm.value.password !== registerForm.value.confirmPassword) {
     message.error('两次输入的密码不一致')
     return
   }
 
+  // 密码长度验证
   if (registerForm.value.password.length < 6) {
     message.error('密码长度至少6位')
     return
   }
 
-  // 简单的邮箱格式验证
+  // 邮箱格式验证
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(registerForm.value.email)) {
     message.error('请输入有效的邮箱地址')
@@ -287,7 +414,7 @@ const handleRegister = async () => {
     } else {
       message.error(result.error?.details || result.error?.message || '注册失败')
     }
-  } catch (error) {
+  } catch {
     message.error('注册失败，请重试')
   }
 }
@@ -406,25 +533,5 @@ const handleRegister = async () => {
   }
 }
 
-// 输入框样式调整
-:deep(.ant-input) {
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
-}
-
-:deep(.ant-input-password) {
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
-
-  &:focus,
-  &:hover {
-    border-color: #000;
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-  }
-}
-
-// 图标和文本间距
-:deep(.ant-input-prefix) {
-  margin-right: 12px;
-}
+// 与 Ant Design 的通用覆写已移至全局样式
 </style>

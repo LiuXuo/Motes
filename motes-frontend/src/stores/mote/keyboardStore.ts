@@ -1,13 +1,49 @@
+/**
+ * 脑图笔记键盘事件管理 Store
+ *
+ * 负责管理脑图笔记的键盘快捷键功能，包括：
+ * - 快捷键组合键的构建和识别
+ * - 节点操作的键盘事件处理
+ * - 编辑模式和浏览模式的快捷键切换
+ * - 与节点操作 Store 的集成
+ * - 支持思维导图和大纲笔记两种视图模式
+ *
+ * @class useKeyboardStore
+ * @example
+ * const keyboardStore = useKeyboardStore()
+ * const handler = keyboardStore.createKeyboardHandler(isEditing, viewMode, selectedNodeId, moteTree, handlers)
+ * document.addEventListener('keydown', handler)
+ */
+
 import { defineStore } from 'pinia'
 
+/**
+ * 脑图节点接口
+ *
+ * 定义脑图节点的基本数据结构。
+ *
+ * @interface MoteNode
+ */
 interface MoteNode {
+  /** 节点唯一标识符 */
   id: string
+  /** 节点文本内容 */
   text: string
+  /** 节点是否折叠 */
   collapsed: boolean
+  /** 父节点ID */
   parentId: string
+  /** 子节点数组 */
   children?: MoteNode[]
 }
 
+/**
+ * 视图模式类型
+ *
+ * 定义脑图笔记的显示模式。
+ *
+ * @typedef {'map' | 'note'} ViewMode
+ */
 type ViewMode = 'map' | 'note'
 
 export const useKeyboardStore = defineStore('keyboardStore', () => {
@@ -15,6 +51,16 @@ export const useKeyboardStore = defineStore('keyboardStore', () => {
 
   /**
    * 构建快捷键字符串
+   *
+   * 将键盘事件转换为标准化的快捷键字符串，
+   * 包含修饰键（Ctrl、Shift、Alt、Meta）和主键。
+   *
+   * @param {KeyboardEvent} event - 键盘事件对象
+   * @returns {string} 快捷键字符串，如 "Ctrl+Shift+A"
+   *
+   * @example
+   * const keyCombo = keyboardStore.buildKeyCombo(event)
+   * console.log('按下的快捷键:', keyCombo) // 例如: "Ctrl+Enter"
    */
   const buildKeyCombo = (event: KeyboardEvent): string => {
     const { key, ctrlKey, shiftKey, altKey, metaKey } = event
@@ -28,6 +74,21 @@ export const useKeyboardStore = defineStore('keyboardStore', () => {
 
   /**
    * 处理节点操作并返回新选中的节点ID
+   *
+   * 执行节点操作函数，如果操作返回新的节点ID则使用它，
+   * 否则保持当前选中的节点ID。
+   *
+   * @param {() => string | void} operation - 节点操作函数
+   * @param {string} selectedNodeId - 当前选中的节点ID
+   * @returns {string} 新的选中节点ID
+   *
+   * @example
+   * const newSelectedId = keyboardStore.executeNodeOperation(
+   *   () => addChildNode('parentId'),
+   *   'currentNodeId'
+   * )
+   *
+   * @throws {Error} 当节点操作失败时
    */
   const executeNodeOperation = (operation: () => string | void, selectedNodeId: string): string => {
     if (!selectedNodeId) return ''
@@ -45,7 +106,27 @@ export const useKeyboardStore = defineStore('keyboardStore', () => {
   }
 
   /**
-   * 创建快捷键处理器
+   * 创建键盘事件处理器
+   *
+   * 根据当前状态创建键盘事件处理函数，
+   * 支持编辑模式和浏览模式的不同快捷键。
+   *
+   * @param {boolean} isEditing - 是否处于编辑模式
+   * @param {ViewMode} viewMode - 当前视图模式
+   * @param {string} selectedNodeId - 当前选中的节点ID
+   * @param {MoteNode} moteTree - 脑图树数据
+   * @param {Object} handlers - 各种操作的处理函数
+   * @returns {(event: KeyboardEvent) => boolean} 键盘事件处理函数
+   *
+   * @example
+   * const handler = keyboardStore.createKeyboardHandler(
+   *   isEditing,
+   *   viewMode,
+   *   selectedNodeId,
+   *   moteTree,
+   *   handlers
+   * )
+   * document.addEventListener('keydown', handler)
    */
   const createKeyboardHandler = (
     isEditing: boolean,
@@ -79,6 +160,8 @@ export const useKeyboardStore = defineStore('keyboardStore', () => {
       canMoveUp: (nodeId: string) => boolean
       canMoveDown: (nodeId: string) => boolean
       findPreviousNode: (nodeId: string) => MoteNode | null
+      isAiExpanding: boolean
+      openAiExpandModal: (nodeId: string) => void
     }
   ) => {
     return (event: KeyboardEvent): boolean => {
@@ -169,6 +252,12 @@ export const useKeyboardStore = defineStore('keyboardStore', () => {
           if (!selectedNodeId) return
           if (handlers.canMoveDown(selectedNodeId)) {
             handlers.moveNodeDown(selectedNodeId)
+          }
+        },
+        'Ctrl+e': () => {
+          if (!selectedNodeId) return
+          if (!handlers.isAiExpanding) {
+            handlers.openAiExpandModal(selectedNodeId)
           }
         },
         ArrowLeft: () => {

@@ -1,10 +1,43 @@
+/**
+ * 脑图笔记服务类
+ * 
+ * 负责脑图笔记的管理，包括：
+ * - 脑图笔记的创建和更新
+ * - 脑图笔记树的导入导出
+ * - Markdown 格式转换
+ * - 与文档树的关联
+ * 
+ */
+
 import { Mote } from '../models/Mote';
 import { Doc } from '../models/Doc';
 import { generateId } from '../utils/idGenerator';
+import type { DocTreeNode, MoteTreeNode, CleanMoteTreeNode } from '../types/common';
 
+/**
+ * 脑图笔记服务类
+ * 
+ * 负责脑图笔记的管理，包括：
+ * - 脑图笔记的创建和更新
+ * - 脑图笔记树的导入导出
+ * - Markdown 格式转换
+ * - 与文档树的关联
+ * 
+ * @class MoteService
+ */
 export class MoteService {
-  // 公共函数：在文档树中查找节点标题
-  private static findNodeTitle(node: any, targetKey: string): string | null {
+  /**
+   * 在文档树中查找节点标题
+   * 
+   * 递归查找指定key的节点标题，用于获取脑图笔记的标题。
+   * 
+   * @param {DocTreeNode} node - 文档树节点
+   * @param {string} targetKey - 目标节点key
+   * @returns {string | null} 节点标题，如果未找到则返回null
+   * 
+   * @private
+   */
+  private static findNodeTitle(node: DocTreeNode, targetKey: string): string | null {
     if (node.key === targetKey) {
       return node.title;
     }
@@ -17,7 +50,22 @@ export class MoteService {
     return null;
   }
 
-  // 获取脑图笔记
+  /**
+   * 获取脑图笔记
+   * 
+   * 获取指定文档的脑图笔记，如果不存在且文档在文档树中存在则创建默认笔记。
+   * 
+   * @param {string} docKey - 文档key
+   * @param {string} userId - 用户ID
+   * @returns {Promise<{docKey: string, moteTree: MoteTreeNode}>} 脑图笔记数据
+   * 
+   * @throws {404} 当脑图笔记不存在且文档不在文档树中时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await MoteService.getMote('docKey123', 'user123');
+   * console.log(result.moteTree);
+   */
   static async getMote(docKey: string, userId: string) {
     let mote = await Mote.findOne({ docId: docKey });
     
@@ -68,8 +116,23 @@ export class MoteService {
     };
   }
 
-  // 更新脑图笔记
-  static async updateMote(docKey: string, moteTree: any, userId: string) {
+  /**
+   * 更新脑图笔记
+   * 
+   * 更新指定文档的脑图笔记，如果不存在且文档在文档树中存在则创建新笔记。
+   * 
+   * @param {string} docKey - 文档key
+   * @param {MoteTreeNode} moteTree - 新的脑图笔记树结构
+   * @param {string} userId - 用户ID
+   * @returns {Promise<{message: string}>} 更新结果
+   * 
+   * @throws {404} 当脑图笔记不存在且文档不在文档树中时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * await MoteService.updateMote('docKey123', newMoteTree, 'user123');
+   */
+  static async updateMote(docKey: string, moteTree: MoteTreeNode, userId: string) {
     let mote = await Mote.findOne({ docId: docKey });
     
     if (!mote) {
@@ -108,7 +171,25 @@ export class MoteService {
     return { message: '笔记更新成功' };
   }
 
-  // 导出脑图笔记
+  /**
+   * 导出脑图笔记
+   * 
+   * 将脑图笔记导出为指定格式（JSON 或 Markdown）。
+   * 支持数据清理和格式转换。
+   * 
+   * @param {string} docKey - 文档key
+   * @param {string} format - 导出格式 ('json' | 'markdown')
+   * @param {string} userId - 用户ID
+   * @returns {Promise<{filename: string, content: string, size: number}>} 导出结果
+   * 
+   * @throws {400} 当导出格式不支持时
+   * @throws {404} 当笔记不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await MoteService.exportMote('docKey123', 'markdown', 'user123');
+   * console.log(result.filename); // 输出文件名
+   */
   static async exportMote(docKey: string, format: string, userId: string) {
     // 获取笔记数据
     const mote = await Mote.findOne({ docId: docKey });
@@ -174,9 +255,29 @@ export class MoteService {
     };
   }
 
-  // 导入脑图笔记
-  static async importMote(parentKey: string, moteTree: any, markdownContent: string, title: string, format: string, userId: string) {
-    let processedTree: any;
+  /**
+   * 导入脑图笔记
+   * 
+   * 导入脑图笔记到指定父节点下，支持 JSON 和 Markdown 格式。
+   * 会自动创建新的文档节点和对应的脑图笔记。
+   * 
+   * @param {string} parentKey - 父节点key
+   * @param {MoteTreeNode} moteTree - 脑图笔记树数据（JSON格式时使用）
+   * @param {string} markdownContent - Markdown内容（Markdown格式时使用）
+   * @param {string} title - 新节点标题
+   * @param {string} format - 导入格式 ('json' | 'markdown')
+   * @param {string} userId - 用户ID
+   * @returns {Promise<{newNode: DocTreeNode, message: string}>} 导入结果
+   * 
+   * @throws {400} 当格式参数无效或内容为空时
+   * @throws {404} 当文档树或父节点不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await MoteService.importMote('parentKey', null, '# 标题\n- 内容', '新笔记', 'markdown', 'user123');
+   */
+  static async importMote(parentKey: string, moteTree: MoteTreeNode, markdownContent: string, title: string, format: string, userId: string) {
+    let processedTree: MoteTreeNode;
 
     if (format === 'markdown') {
       if (!markdownContent) {
@@ -197,20 +298,20 @@ export class MoteService {
           error: {
             code: 'VALIDATION_ERROR',
             message: '数据验证失败',
-            details: '脑图树数据不能为空',
+            details: '脑图笔记树数据不能为空',
           },
         };
       }
       // 重新构建树结构，添加id、parentId和collapsed字段
-      processedTree = this.processImportedTree(moteTree);
+      processedTree = this.processImportedTree(moteTree as unknown as Record<string, unknown>);
     }
 
     // 生成新的文档节点
     const newNodeKey = generateId();
-    const newNode = {
+    const newNode: DocTreeNode = {
       key: newNodeKey,
       title,
-      type: 'mote',
+      type: 'mote' as const,
       isDeleted: false,
     };
 
@@ -227,7 +328,7 @@ export class MoteService {
     }
 
     // 递归查找并添加节点
-    const addNodeToTree = (node: any, parentKey: string): boolean => {
+    const addNodeToTree = (node: DocTreeNode, parentKey: string): boolean => {
       if (node.key === parentKey) {
         if (!node.children) {
           node.children = [];
@@ -258,7 +359,22 @@ export class MoteService {
       };
     }
 
-    await doc.save();
+    // 使用原子操作更新文档，避免深层修改未被 Mongoose 变更跟踪到
+    const updateResult = await Doc.updateOne(
+      { userId: doc.userId },
+      { $set: { docTree: doc.docTree } },
+    );
+    
+    if (updateResult.modifiedCount === 0) {
+      console.error('导入笔记更新失败，没有修改任何记录');
+      throw {
+        status: 500,
+        error: {
+          code: 'UPDATE_ERROR',
+          message: '导入笔记更新失败',
+        },
+      };
+    }
 
     // 创建脑图笔记
     const mote = new Mote({
@@ -273,8 +389,22 @@ export class MoteService {
     };
   }
 
-  // 辅助函数：转换为Markdown（只使用-无序列表表示层级缩进）
-  private static convertToMarkdown(moteTree: any, level = 1): string {
+  /**
+   * 转换为Markdown格式
+   * 
+   * 将脑图笔记树结构转换为Markdown格式，使用无序列表表示层级关系。
+   * 
+   * @param {CleanMoteTreeNode} moteTree - 清理后的脑图笔记树
+   * @param {number} [level=1] - 当前层级
+   * @returns {string} Markdown格式的文本
+   * 
+   * @private
+   * 
+   * @example
+   * const markdown = MoteService.convertToMarkdown(cleanTree);
+   * // 输出: "- 根节点\n    - 子节点1\n    - 子节点2"
+   */
+  private static convertToMarkdown(moteTree: CleanMoteTreeNode, level = 1): string {
     let markdown = '';
     
     // 输出当前节点，使用无序列表
@@ -291,39 +421,77 @@ export class MoteService {
     return markdown;
   }
 
-  // 辅助函数：清理脑图树，只保留text和children字段
-  private static cleanMoteTree(node: any): any {
-    const cleanNode: any = {
+  /**
+   * 清理脑图笔记树数据
+   * 
+   * 清理脑图笔记树，只保留text和children字段，移除其他系统字段。
+   * 
+   * @param {MoteTreeNode} node - 原始脑图笔记树节点
+   * @returns {CleanMoteTreeNode} 清理后的节点
+   * 
+   * @private
+   * 
+   * @example
+   * const cleanNode = MoteService.cleanMoteTree(originalNode);
+   */
+  private static cleanMoteTree(node: MoteTreeNode): CleanMoteTreeNode {
+    const cleanNode: CleanMoteTreeNode = {
       text: node.text,
     };
     
     if (node.children && node.children.length > 0) {
-      cleanNode.children = node.children.map((child: any) => this.cleanMoteTree(child));
+      cleanNode.children = node.children.map((child: MoteTreeNode) => this.cleanMoteTree(child));
     }
     
     return cleanNode;
   }
 
-  // 辅助函数：处理导入的树结构，添加id、parentId和collapsed字段
-  private static processImportedTree(node: any, parentId = ''): any {
+  /**
+   * 处理导入的树结构
+   * 
+   * 为导入的树结构添加id、parentId和collapsed字段，确保数据结构完整性。
+   * 
+   * @param {Record<string, unknown>} node - 导入的节点数据
+   * @param {string} [parentId=''] - 父节点ID
+   * @returns {MoteTreeNode} 处理后的节点
+   * 
+   * @private
+   * 
+   * @example
+   * const processedNode = MoteService.processImportedTree(importedData);
+   */
+  private static processImportedTree(node: Record<string, unknown>, parentId = ''): MoteTreeNode {
     const id = generateId();
-    const processedNode: any = {
+    const processedNode: MoteTreeNode = {
       id,
-      text: node.text,
+      text: String(node.text || ''),
       collapsed: false,
       parentId: parentId || id, // 如果是根节点，parentId设为自己的id
       children: [],
     };
     
-    if (node.children && node.children.length > 0) {
-      processedNode.children = node.children.map((child: any) => this.processImportedTree(child, id));
+    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
+      processedNode.children = node.children.map((child: Record<string, unknown>) => this.processImportedTree(child, id));
     }
     
     return processedNode;
   }
 
-  // 辅助函数：将markdown内容解析为树结构
-  private static parseMarkdownToTree(content: string): any {
+  /**
+   * 将Markdown内容解析为树结构
+   * 
+   * 解析Markdown内容，识别列表项和缩进层级，构建脑图笔记树结构。
+   * 支持多种缩进格式和列表符号。
+   * 
+   * @param {string} content - Markdown内容
+   * @returns {MoteTreeNode} 解析后的脑图笔记树
+   * 
+   * @private
+   * 
+   * @example
+   * const tree = MoteService.parseMarkdownToTree('# 标题\n- 项目1\n  - 子项目1');
+   */
+  private static parseMarkdownToTree(content: string): MoteTreeNode {
     const lines = content.split('\n').filter(line => line.trim() !== '');
     
     if (lines.length === 0) {
@@ -363,7 +531,7 @@ export class MoteService {
     }
 
     // 第二步：确定根节点
-    let rootNode: any = null;
+    let rootNode: MoteTreeNode | null = null;
     let startIndex = 0;
     // 查找第一个无序列表项作为根节点
     for (let i = 0; i < lines.length; i++) {
@@ -400,8 +568,8 @@ export class MoteService {
     }
 
     // 第三步：解析剩余内容
-    const stack: Array<{ node: any, level: number, type: 'list' }> = [
-      { node: rootNode, level: 1, type: 'list' },
+    const stack: Array<{ node: MoteTreeNode, level: number, type: 'list' }> = [
+      { node: rootNode!, level: 1, type: 'list' },
     ];
     for (let i = startIndex; i < lines.length; i++) {
       const line = lines[i];
@@ -428,25 +596,31 @@ export class MoteService {
           id: generateId(),
           text,
           collapsed: false,
-          parentId: stack[stack.length - 1].node.id,
+          parentId: stack[stack.length - 1]!.node.id,
           children: [],
         };
         
-        stack[stack.length - 1].node.children.push(newNode);
-        stack.push({ node: newNode, level, type: 'list' });
+        const currentStack = stack[stack.length - 1];
+        if (currentStack && currentStack.node.children) {
+          currentStack.node.children.push(newNode);
+          stack.push({ node: newNode, level, type: 'list' });
+        }
         continue;
       }
 
       // 普通文本行，作为最近节点的子节点
       if (stack.length > 0) {
-        const newNode = {
-          id: generateId(),
-          text: trimmedLine,
-          collapsed: false,
-          parentId: stack[stack.length - 1].node.id,
-          children: [],
-        };
-        stack[stack.length - 1].node.children.push(newNode);
+        const currentStack = stack[stack.length - 1];
+        if (currentStack && currentStack.node.children) {
+          const newNode = {
+            id: generateId(),
+            text: trimmedLine,
+            collapsed: false,
+            parentId: currentStack.node.id,
+            children: [],
+          };
+          currentStack.node.children.push(newNode);
+        }
       }
     }
 

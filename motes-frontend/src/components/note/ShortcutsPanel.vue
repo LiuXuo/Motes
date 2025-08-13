@@ -1,3 +1,26 @@
+<!--
+  快捷键面板组件
+
+  主要功能：
+  - 显示操作快捷键说明
+  - 支持面板的显示/隐藏切换
+  - 提供收起和弹出按钮
+  - 支持淡入淡出动画效果
+
+  Props:
+  - showCard: 是否显示快捷键卡片
+  - showCloseButton: 是否显示收起按钮
+  - showPopupButton: 是否显示弹出按钮
+
+  Events:
+  - close: 关闭面板事件
+  - show: 显示面板事件
+
+  Features:
+  - 响应式显示控制
+  - 平滑的动画过渡
+  - 悬停提示效果
+-->
 <template>
   <!-- 快捷键提示卡片 -->
   <Transition name="fade-slide">
@@ -49,6 +72,7 @@ interface Shortcut {
 
 // ==================== 快捷键配置 ====================
 const shortcuts: Shortcut[] = [
+  { key: 'Ctrl + E', description: 'AI 生枝' },
   { key: 'Click', description: '单击选中' },
   { key: 'F2', description: '点击选中节点编辑' },
   { key: '↑', description: '上一个节点' },

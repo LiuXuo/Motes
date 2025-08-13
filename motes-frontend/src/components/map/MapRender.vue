@@ -1,5 +1,20 @@
+<!--
+  思维导图渲染组件
+
+  主要功能：
+  - 基于 AntV X6 图形库渲染思维导图
+  - 提供缩放控制和节点操作界面
+  - 集成节点编辑和操作功能
+  - 支持键盘快捷键和鼠标交互
+
+  Dependencies:
+  - @antv/x6: 图形渲染库
+  - @antv/hierarchy: 层级布局算法
+  - useMoteStore: 脑图状态管理
+-->
 <template>
   <div style="width: 100%; height: 100%">
+    <!-- 图形渲染容器 -->
     <div id="container" style="width: 100%; height: 100%"></div>
 
     <!-- 缩放控制器 -->
@@ -38,17 +53,42 @@ import {
 import { selectNode as selectNodeFn, initGraphEvents } from './graphEvents'
 
 // ==================== 状态管理 ====================
+/**
+ * 脑图状态管理 Store
+ *
+ * 管理脑图的核心状态，包括：
+ * - 脑图树数据结构
+ * - 节点选中和编辑状态
+ * - 视图模式配置
+ */
 const moteStore = useMoteStore()
 
-// 缩放控制
+/**
+ * 缩放控制值
+ *
+ * 控制思维导图的缩放比例，范围 0.2-2.0
+ * 通过垂直滑块进行调节
+ */
 const zoom = ref(1)
 
-// 图形实例
+/**
+ * 图形实例
+ *
+ * AntV X6 图形库的实例，负责渲染和管理思维导图
+ */
 let graph: Graph
 
 // ==================== 核心函数 ====================
 /**
  * 选中指定节点
+ *
+ * 在思维导图中选中指定ID的节点，并更新相关状态
+ *
+ * @param {string} nodeId - 要选中的节点ID
+ *
+ * @example
+ * selectNode('node123')
+ * // 选中ID为 node123 的节点
  */
 const selectNode = (nodeId: string) => {
   if (graph) {
@@ -58,6 +98,12 @@ const selectNode = (nodeId: string) => {
 
 /**
  * 渲染图形
+ *
+ * 重新渲染整个思维导图，通常在数据变化后调用
+ *
+ * @example
+ * renderGraph()
+ * // 重新渲染思维导图
  */
 const renderGraph = () => {
   if (graph) {
@@ -66,13 +112,37 @@ const renderGraph = () => {
 }
 
 // ==================== 监听器 ====================
+/**
+ * 缩放控制监听
+ *
+ * 监听缩放值变化，实时更新图形缩放比例
+ */
 watch(zoom, (val) => {
   if (graph) {
     graph.zoomTo(val)
   }
 })
 
-// 监听数据变化，重新渲染图形并同步更新选中节点的标签
+/**
+ * 监听选中节点变化
+ *
+ * 当选中节点发生变化时，清空编辑文本状态
+ */
+watch(
+  () => moteStore.selectedNodeId,
+  (newNodeId) => {
+    if (newNodeId && !moteStore.isEditing) {
+      moteStore.editingNodeText = ''
+    }
+  }
+)
+
+/**
+ * 监听数据变化
+ *
+ * 当脑图树数据发生变化时，重新渲染图形并同步更新选中节点的标签
+ * 支持深度监听，确保所有层级的数据变化都能被捕获
+ */
 watch(
   () => moteStore.moteTree,
   () => {
@@ -94,26 +164,17 @@ watch(
   { deep: true },
 )
 
-// 监听选中节点变化
-watch(
-  () => moteStore.selectedNodeLabel,
-  () => {
-    if (!moteStore.isEditing) {
-      moteStore.editingNodeText = ''
-    }
-  },
-)
-
-watch(
-  () => moteStore.selectedNodeId,
-  (newNodeId) => {
-    if (newNodeId && !moteStore.isEditing) {
-      moteStore.editingNodeText = ''
-    }
-  },
-)
-
 // ==================== 生命周期 ====================
+/**
+ * 组件挂载时初始化
+ *
+ * 在组件挂载时执行以下操作：
+ * - 注册节点类型和连接器
+ * - 初始化图形实例
+ * - 设置图形事件监听
+ * - 渲染初始图形
+ * - 设置清理函数
+ */
 onMounted(() => {
   // 注册节点类型和连接器
   registerNodeTypes()

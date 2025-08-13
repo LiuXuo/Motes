@@ -1,9 +1,27 @@
+/**
+ * 默认数据配置文件
+ * 
+ * 定义系统初始化时的默认数据，包括：
+ * - 默认思维导图模板
+ * - 默认文档树结构
+ * - 示例数据用于演示和测试
+ * - 新用户首次使用时的引导数据
+ * 
+ * 这些数据为新用户提供良好的初始体验，展示系统的核心功能。
+ */
+
 import { generateId } from '../utils/idGenerator';
 
-// 默认的mote数据
+const default01 = generateId();
+const default02 = generateId();
+const default03 = generateId();
+
+/**
+ * 默认mote数据
+ */
 export const defaultMotes = {
   default01: {
-    docId: 'default01',
+    docId: default01,
     moteTree: {
       id: 'default01',
       text: '思维导图视图',
@@ -176,7 +194,7 @@ export const defaultMotes = {
     },
   },
   default02: {
-    docId: 'default02',
+    docId: default02,
     moteTree: {
       id: 'default02',
       text: '大纲笔记视图',
@@ -354,7 +372,7 @@ export const defaultMotes = {
     },
   },
   default03: {
-    docId: 'default03',
+    docId: default03,
     moteTree: {
       id: 'default03',
       text: '人工智能发展',
@@ -614,13 +632,13 @@ export const generateDefaultDocTree = (userId: string) => {
           isDeleted: false,
           children: [
             {
-              key: 'default01',
+              key: default01,
               title: '思维导图视图',
               type: 'mote' as const,
               isDeleted: false,
             },
             {
-              key: 'default02',
+              key: default02,
               title: '大纲笔记视图',
               type: 'mote' as const,
               isDeleted: false,
@@ -665,7 +683,7 @@ export const generateDefaultDocTree = (userId: string) => {
       ],
     },
     {
-      key: 'default03',
+      key: default03,
       title: '人工智能发展',
       type: 'mote' as const,
       isDeleted: false,

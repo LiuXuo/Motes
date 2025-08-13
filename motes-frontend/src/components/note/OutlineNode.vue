@@ -1,3 +1,27 @@
+<!--
+  大纲节点组件
+
+  主要功能：
+  - 渲染单个大纲节点
+  - 支持节点文本编辑
+  - 处理节点折叠/展开
+  - 递归渲染子节点
+  - 支持过渡动画效果
+
+  Props:
+  - node: 节点数据对象
+  - selectedNodeId: 当前选中的节点ID
+  - level: 节点层级，默认为1
+
+  Events:
+  - node-click: 节点点击事件
+  - node-toggle: 节点折叠/展开事件
+
+  Features:
+  - 自动聚焦编辑输入框
+  - 动态调整输入框高度
+  - 平滑的展开/折叠动画
+-->
 <template>
   <div class="outline-node">
     <!-- 节点内容 -->
@@ -126,15 +150,48 @@ watch(
 )
 
 // ==================== 辅助函数 ====================
+/**
+ * 检查节点是否有子节点
+ *
+ * 判断指定节点是否包含子节点
+ *
+ * @param {MoteTree} node - 要检查的节点
+ * @returns {boolean} 是否有子节点
+ *
+ * @example
+ * const hasKids = hasChildren(nodeData)
+ */
 const hasChildren = (node: MoteTree) => {
   return node.children && node.children.length > 0
 }
 
+/**
+ * 检查节点是否被选中
+ *
+ * 比较节点ID与当前选中节点ID是否相同
+ *
+ * @param {string} nodeId - 节点ID
+ * @param {string} selectedId - 当前选中的节点ID
+ * @returns {boolean} 是否被选中
+ *
+ * @example
+ * const isSelected = isSelected('node123', 'node123') // true
+ */
 const isSelected = (nodeId: string, selectedId: string) => {
   return selectedId === nodeId
 }
 
 // ==================== 过渡动画处理 ====================
+/**
+ * 子节点展开动画进入处理
+ *
+ * 处理子节点容器展开时的动画效果，从高度0平滑过渡到实际高度
+ *
+ * @param {Element} el - 要动画的元素
+ *
+ * @example
+ * <Transition name="children-expand" @enter="onEnter">
+ */
 const onEnter = (el: Element) => {
   const target = el as HTMLElement
   target.style.height = '0'
@@ -154,6 +211,16 @@ const onEnter = (el: Element) => {
   }, 300)
 }
 
+/**
+ * 子节点折叠动画离开处理
+ *
+ * 处理子节点容器折叠时的动画效果，从实际高度平滑过渡到高度0
+ *
+ * @param {Element} el - 要动画的元素
+ *
+ * @example
+ * <Transition name="children-expand" @leave="onLeave">
+ */
 const onLeave = (el: Element) => {
   const target = el as HTMLElement
   const height = target.scrollHeight
@@ -168,6 +235,19 @@ const onLeave = (el: Element) => {
 }
 
 // ==================== 事件处理 ====================
+/**
+ * 节点点击事件处理函数
+ *
+ * 处理节点点击事件，包括：
+ * - 如果点击已选中节点且非折叠按钮，进入编辑状态
+ * - 如果点击新节点，选中该节点
+ * - 自动聚焦和全选编辑输入框
+ *
+ * @param {string} nodeId - 被点击的节点ID
+ *
+ * @example
+ * @click="handleNodeClick(props.node.id)"
+ */
 const handleNodeClick = (nodeId: string) => {
   // 如果点击的是已选中的节点，进入编辑状态
   if (props.selectedNodeId === nodeId && !isEditing.value) {
@@ -198,10 +278,29 @@ const handleNodeClick = (nodeId: string) => {
   }
 }
 
+/**
+ * 节点折叠/展开事件处理函数
+ *
+ * 处理节点折叠/展开按钮的点击事件
+ *
+ * @param {string} nodeId - 要切换折叠状态的节点ID
+ *
+ * @example
+ * @click.stop="handleNodeToggle(props.node.id)"
+ */
 const handleNodeToggle = (nodeId: string) => {
   emit('node-toggle', nodeId)
 }
 
+/**
+ * 编辑确认处理函数
+ *
+ * 确认文本编辑，更新节点文本并退出编辑状态
+ * 如果编辑文本为空，则不进行更新
+ *
+ * @example
+ * handleEditConfirm()
+ */
 const handleEditConfirm = () => {
   if (editText.value.trim() !== '') {
     // 使用 moteStore 的 editNodeText 函数
@@ -212,10 +311,26 @@ const handleEditConfirm = () => {
   isEditing.value = false
 }
 
+/**
+ * 编辑失焦处理函数
+ *
+ * 当编辑输入框失去焦点时，自动确认编辑
+ *
+ * @example
+ * @blur="handleEditBlur"
+ */
 const handleEditBlur = () => {
   handleEditConfirm()
 }
 
+/**
+ * 编辑取消处理函数
+ *
+ * 取消文本编辑，恢复原始文本并退出编辑状态
+ *
+ * @example
+ * @keydown.esc="handleEditCancel"
+ */
 const handleEditCancel = () => {
   // 取消编辑，恢复原文本
   editText.value = props.node.text
@@ -225,6 +340,14 @@ const handleEditCancel = () => {
 }
 
 // ==================== 自动调整高度 ====================
+/**
+ * 自动调整文本域高度
+ *
+ * 根据文本内容自动调整文本域的高度，确保显示完整内容
+ *
+ * @example
+ * adjustTextareaHeight()
+ */
 const adjustTextareaHeight = () => {
   if (editInput.value) {
     editInput.value.style.height = 'auto'
@@ -232,7 +355,14 @@ const adjustTextareaHeight = () => {
   }
 }
 
-// 监听编辑文本变化，自动调整高度
+/**
+ * 编辑文本变化处理函数
+ *
+ * 监听编辑文本的变化，自动调整文本域高度以适应内容
+ *
+ * @example
+ * @input="handleEditTextChange"
+ */
 const handleEditTextChange = () => {
   nextTick(() => {
     adjustTextareaHeight()

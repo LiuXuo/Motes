@@ -1,64 +1,180 @@
+/**
+ * 用户认证状态管理 Store
+ *
+ * 负责管理用户的认证状态和相关信息，包括：
+ * - 用户登录、注册、登出功能
+ * - 用户信息的本地存储和状态管理
+ * - Token 的刷新和管理
+ * - 登录状态的回调机制
+ * - 与其他 Store 的认证状态同步
+ *
+ * @class useUserStore
+ * @example
+ * const userStore = useUserStore()
+ * const result = await userStore.login('username', 'password')
+ * if (result.success) {
+ *   console.log('登录成功')
+ * }
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { loginUser, registerUser, logoutUser, refreshAccessToken } from '../services/userApi'
 
 // ==================== 接口定义 ====================
+
+/**
+ * 用户信息接口
+ *
+ * 定义用户的基本信息结构，包括用户ID、用户名、邮箱等。
+ *
+ * @interface User
+ */
 export interface User {
+  /** 用户唯一标识符 */
   _id: string
+  /** 用户名 */
   username: string
+  /** 用户邮箱 */
   email: string
+  /** 用户创建时间 */
   createdAt: Date
+  /** 用户信息更新时间 */
   updatedAt: Date
 }
 
+/**
+ * 登录响应接口
+ *
+ * 定义登录 API 的响应数据结构，包含成功和失败两种情况。
+ *
+ * @interface LoginResponse
+ */
 export interface LoginResponse {
+  /** 操作是否成功 */
   success: boolean
+  /** 成功时的数据 */
   data?: {
+    /** 用户信息 */
     user: User
+    /** 访问令牌 */
     token: string
+    /** 刷新令牌 */
     refreshToken: string
   }
+  /** 失败时的错误信息 */
   error?: {
+    /** 错误代码 */
     code: string
+    /** 错误消息 */
     message: string
+    /** 错误详情 */
     details?: string
   }
 }
 
+/**
+ * 注册响应接口
+ *
+ * 定义注册 API 的响应数据结构，与登录响应结构类似。
+ *
+ * @interface RegisterResponse
+ */
 export interface RegisterResponse {
+  /** 操作是否成功 */
   success: boolean
+  /** 成功时的数据 */
   data?: {
+    /** 用户信息 */
     user: User
+    /** 访问令牌 */
     token: string
+    /** 刷新令牌 */
     refreshToken: string
   }
+  /** 失败时的错误信息 */
   error?: {
+    /** 错误代码 */
     code: string
+    /** 错误消息 */
     message: string
+    /** 错误详情 */
     details?: string
   }
 }
 
 export const useUserStore = defineStore('user', () => {
   // ==================== 数据状态 ====================
+
+  /** 当前登录用户信息 */
   const currentUser = ref<User | null>(null)
+
+  /** 用户是否已登录 */
   const isLoggedIn = ref(false)
+
+  /** 是否正在加载（登录/注册过程中） */
   const isLoading = ref(false)
 
   // ==================== 事件回调 ====================
+
+  /** 登录成功后的回调函数 */
   const onLoginSuccess = ref<(() => Promise<void>) | null>(null)
+
+  /** 登出时的回调函数 */
   const onLogout = ref<(() => void) | null>(null)
 
   // ==================== 设置回调方法 ====================
+
+  /**
+   * 设置登录成功回调
+   *
+   * 当用户登录成功后，会执行此回调函数。
+   * 通常用于初始化其他 Store 的数据。
+   *
+   * @param {() => Promise<void>} callback - 登录成功后的回调函数
+   *
+   * @example
+   * userStore.setLoginSuccessCallback(async () => {
+   *   await docStore.fetchDocTree()
+   * })
+   */
   const setLoginSuccessCallback = (callback: () => Promise<void>) => {
     onLoginSuccess.value = callback
   }
 
+  /**
+   * 设置登出回调
+   *
+   * 当用户登出时，会执行此回调函数。
+   * 通常用于清理其他 Store 的数据。
+   *
+   * @param {() => void} callback - 登出时的回调函数
+   *
+   * @example
+   * userStore.setLogoutCallback(() => {
+   *   docStore.resetDocTree()
+   *   moteStore.resetMoteTree()
+   * })
+   */
   const setLogoutCallback = (callback: () => void) => {
     onLogout.value = callback
   }
 
   // ==================== 初始化检查 ====================
+
+  /**
+   * 初始化用户认证状态
+   *
+   * 在应用启动时检查本地存储中的认证信息，
+   * 如果存在有效的 token 和用户数据，则恢复登录状态。
+   *
+   * @returns {Promise<void>} 初始化完成
+   *
+   * @example
+   * await userStore.initializeAuth()
+   *
+   * @throws {Error} 当解析用户数据失败时
+   */
   const initializeAuth = async () => {
     const token = localStorage.getItem('accessToken')
     const userData = localStorage.getItem('userData')
@@ -82,6 +198,31 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // ==================== 方法定义 ====================
+
+  /**
+   * 用户登录
+   *
+   * 验证用户凭据并完成登录流程，包括：
+   * - 调用后端登录 API
+   * - 保存用户信息和 token 到本地存储
+   * - 更新登录状态
+   * - 执行登录成功回调
+   *
+   * @param {string} username - 用户名
+   * @param {string} password - 密码
+   * @returns {Promise<LoginResponse>} 登录结果
+   *
+   * @example
+   * const result = await userStore.login('myuser', 'mypassword')
+   * if (result.success) {
+   *   message.success('登录成功')
+   * } else {
+   *   message.error(result.error?.message)
+   * }
+   *
+   * @throws {Error} 当网络请求失败时
+   * @throws {Error} 当用户凭据无效时
+   */
   const login = async (username: string, password: string): Promise<LoginResponse> => {
     isLoading.value = true
 
@@ -116,6 +257,31 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 用户注册
+   *
+   * 创建新用户账户并自动登录，包括：
+   * - 调用后端注册 API
+   * - 保存用户信息和 token 到本地存储
+   * - 更新登录状态
+   * - 执行登录成功回调
+   *
+   * @param {string} username - 用户名
+   * @param {string} email - 邮箱地址
+   * @param {string} password - 密码
+   * @returns {Promise<RegisterResponse>} 注册结果
+   *
+   * @example
+   * const result = await userStore.register('newuser', 'user@example.com', 'password123')
+   * if (result.success) {
+   *   message.success('注册并登录成功')
+   * } else {
+   *   message.error(result.error?.message)
+   * }
+   *
+   * @throws {Error} 当网络请求失败时
+   * @throws {Error} 当用户名或邮箱已存在时
+   */
   const register = async (username: string, email: string, password: string): Promise<RegisterResponse> => {
     isLoading.value = true
 
@@ -150,6 +316,20 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 用户登出
+   *
+   * 清除用户认证状态并调用后端登出接口，
+   * 包括清理本地存储和执行登出回调。
+   *
+   * @returns {Promise<void>} 登出完成
+   *
+   * @example
+   * await userStore.logout()
+   * router.push('/login')
+   *
+   * @throws {Error} 当登出请求失败时（不影响本地清理）
+   */
   const logout = async () => {
     try {
       // 调用后端登出接口
@@ -161,6 +341,15 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 清除认证状态
+   *
+   * 清除所有本地存储的认证信息和状态，
+   * 并执行登出回调函数。
+   *
+   * @example
+   * userStore.clearAuth()
+   */
   const clearAuth = () => {
     currentUser.value = null
     isLoggedIn.value = false
@@ -174,6 +363,26 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 刷新访问令牌
+   *
+   * 使用刷新令牌获取新的访问令牌，
+   * 当访问令牌过期时自动调用。
+   *
+   * @returns {Promise<string>} 新的访问令牌
+   *
+   * @example
+   * try {
+   *   const newToken = await userStore.refreshToken()
+   *   console.log('令牌刷新成功')
+   * } catch (error) {
+   *   // 刷新失败，需要重新登录
+   *   userStore.clearAuth()
+   * }
+   *
+   * @throws {Error} 当没有刷新令牌时
+   * @throws {Error} 当刷新令牌无效时
+   */
   const refreshToken = async () => {
     const refreshTokenValue = localStorage.getItem('refreshToken')
     if (!refreshTokenValue) {
@@ -195,10 +404,34 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // ==================== 工具方法 ====================
+
+  /**
+   * 获取当前访问令牌
+   *
+   * @returns {string | null} 访问令牌，未登录时返回 null
+   *
+   * @example
+   * const token = userStore.getAuthToken()
+   * if (token) {
+   *   // 使用令牌进行 API 调用
+   * }
+   */
   const getAuthToken = () => {
     return localStorage.getItem('accessToken')
   }
 
+  /**
+   * 检查用户是否已认证
+   *
+   * 同时检查本地存储中的令牌和登录状态。
+   *
+   * @returns {boolean} 用户是否已认证
+   *
+   * @example
+   * if (userStore.isAuthenticated()) {
+   *   // 用户已登录，可以访问受保护的页面
+   * }
+   */
   const isAuthenticated = () => {
     return !!getAuthToken() && isLoggedIn.value
   }

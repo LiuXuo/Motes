@@ -1,15 +1,31 @@
+<!--
+  404 错误页面组件
+
+  主要功能：
+  - 显示页面未找到的错误信息
+  - 提供用户友好的错误说明
+  - 提供返回首页和返回上页的导航选项
+  - 保持与应用整体风格一致的设计
+
+  页面结构：
+  - 头部：404错误码和标题
+  - 错误说明：详细的错误描述和图标
+  - 行动区域：导航按钮
+  - 底部：版权信息
+-->
 <template>
   <div class="not-found-container">
     <div class="not-found-content">
-      <!-- 头部区域 -->
+      <!-- 头部区域：错误码和标题 -->
       <div class="not-found-header">
         <h1>404</h1>
         <p class="subtitle">页面未找到</p>
       </div>
 
-      <!-- 错误描述区域 -->
+      <!-- 错误描述区域：详细说明和图标 -->
       <div class="error-section">
         <div class="error-card">
+          <!-- 错误图标：使用SVG图标表示错误状态 -->
           <div class="error-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10" />
@@ -22,19 +38,21 @@
         </div>
       </div>
 
-      <!-- 行动区域 -->
+      <!-- 行动区域：导航按钮 -->
       <div class="action-section">
         <div class="action-buttons">
+          <!-- 返回首页按钮 -->
           <a-button type="primary" size="large" class="action-button home-btn" @click="goToHome">
             返回首页
           </a-button>
+          <!-- 返回上页按钮 -->
           <a-button size="large" class="action-button back-btn" @click="goBack">
             返回上页
           </a-button>
         </div>
       </div>
 
-      <!-- 底部信息 -->
+      <!-- 底部信息：版权声明 -->
       <div class="not-found-footer">
         <p>© 2024 Motes. 让思维更有条理，让知识更有价值。</p>
       </div>
@@ -43,16 +61,34 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * 404 错误页面组件逻辑
+ *
+ * 使用 Composition API 管理页面导航，
+ * 提供返回首页和返回上一页的功能。
+ */
+
 import { useRouter } from 'vue-router'
 
+// ==================== 路由管理 ====================
 const router = useRouter()
 
-// 返回首页
+// ==================== 导航方法 ====================
+/**
+ * 返回首页
+ *
+ * 导航到应用首页，为用户提供重新开始浏览的选项。
+ */
 const goToHome = () => {
   router.push('/home')
 }
 
-// 返回上一页
+/**
+ * 返回上一页
+ *
+ * 使用浏览器历史记录返回上一页，
+ * 为用户提供快速返回的选项。
+ */
 const goBack = () => {
   router.go(-1)
 }

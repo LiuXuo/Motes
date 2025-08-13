@@ -1,8 +1,47 @@
+/**
+ * 用户服务类
+ * 
+ * 负责用户相关的业务逻辑，包括：
+ * - 用户注册和登录
+ * - 密码验证和加密
+ * - JWT 令牌管理
+ * - 用户信息管理
+ */
+
 import { User } from '../models/User';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 
+/**
+ * 用户服务类
+ * 
+ * 负责用户相关的业务逻辑，包括：
+ * - 用户注册和登录
+ * - 密码验证和加密
+ * - JWT 令牌管理
+ * - 用户信息管理
+ * 
+ * @class UserService
+ */
 export class UserService {
-  // 用户注册
+  /**
+   * 用户注册
+   * 
+   * 创建新用户账户，包括用户名、邮箱和密码验证。
+   * 自动生成访问令牌和刷新令牌。
+   * 
+   * @param {string} username - 用户名
+   * @param {string} email - 邮箱地址
+   * @param {string} password - 密码
+   * @returns {Promise<{user: Object, token: string, refreshToken: string}>} 注册结果
+   * 
+   * @throws {409} 当用户名或邮箱已存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await UserService.register('testuser', 'test@example.com', 'password123');
+   * console.log(result.user.username); // 输出: 'testuser'
+   * console.log(result.token); // 输出: JWT访问令牌
+   */
   static async register(username: string, email: string, password: string) {
     // 检查用户是否已存在
     const existingUser = await User.findOne({
@@ -51,7 +90,24 @@ export class UserService {
     };
   }
 
-  // 用户登录
+  /**
+   * 用户登录
+   * 
+   * 验证用户凭据并生成访问令牌。
+   * 支持用户名或邮箱登录。
+   * 
+   * @param {string} username - 用户名或邮箱
+   * @param {string} password - 密码
+   * @returns {Promise<{user: Object, token: string, refreshToken: string}>} 登录结果
+   * 
+   * @throws {401} 当用户名或密码错误时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await UserService.login('testuser', 'password123');
+   * console.log(result.user.username); // 输出: 'testuser'
+   * console.log(result.token); // 输出: JWT访问令牌
+   */
   static async login(username: string, password: string) {
     // 查找用户
     const user = await User.findOne({
@@ -103,7 +159,23 @@ export class UserService {
     };
   }
 
-  // 刷新Token
+  /**
+   * 刷新Token
+   * 
+   * 使用刷新令牌生成新的访问令牌和刷新令牌。
+   * 验证刷新令牌的有效性和用户存在性。
+   * 
+   * @param {string} refreshToken - 刷新令牌
+   * @returns {Promise<{token: string, refreshToken: string}>} 新的令牌对
+   * 
+   * @throws {401} 当刷新令牌无效或用户不存在时
+   * @throws {500} 当数据库操作失败时
+   * 
+   * @example
+   * const result = await UserService.refresh('refresh_token_string');
+   * console.log(result.token); // 输出: 新的JWT访问令牌
+   * console.log(result.refreshToken); // 输出: 新的刷新令牌
+   */
   static async refresh(refreshToken: string) {
     // 验证刷新令牌
     const { verifyRefreshToken } = await import('../utils/jwt');

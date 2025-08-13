@@ -1,35 +1,74 @@
+<!--
+  AI生成配置页面组件
+
+  主要功能：
+  - AI文档生成配置界面
+  - 支持多种输入类型（主题、文本、文件）
+  - AI模型配置和预设选择
+  - 文件上传和预览
+  - 表单验证和提交
+  - 生成进度和结果展示
+-->
 <template>
   <div class="ai-generate-page">
-    <h1 class="page-title">AI 生成脑图笔记</h1>
+    <h1 class="page-title">AI 生成配置</h1>
     <div class="panel">
-      <a-form :model="form" layout="vertical">
+      <a-form ref="formRef" :model="form" layout="vertical">
         <a-row :gutter="12">
           <a-col :span="8">
             <a-form-item label="输入类型">
               <a-select v-model:value="form.inputType">
-                <a-select-option value="theme">主题</a-select-option>
-                <a-select-option value="text">文本</a-select-option>
-                <a-select-option value="file">文件（PDF/DOCX/MD）</a-select-option>
+                <a-select-option value="theme">
+                  <BulbOutlined style="margin-right: 8px;" />
+                  主题
+                </a-select-option>
+                <a-select-option value="text">
+                  <FileTextOutlined style="margin-right: 8px;" />
+                  文本
+                </a-select-option>
+                <a-select-option value="file">
+                  <UploadOutlined style="margin-right: 8px;" />
+                  文件（PDF/DOCX/MD）
+                </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
           <a-col :span="16">
-            <a-form-item label="存放至">
-              <div style="display:flex; gap:8px; align-items:center;">
-                <a-input v-model:value="form.docParentKey" placeholder="请选择或输入目标文件夹 key" />
-                <a-button @click="openPickFolder">选择</a-button>
-              </div>
+            <a-form-item label="导入到" name="docParentKey">
+              <a-input
+                :value="selectedFolderName || form.docParentKey"
+                placeholder="请选择目标文件夹"
+                readonly
+                @click="openPickFolder"
+                style="cursor: pointer;"
+              >
+                <template #prefix>
+                  <FolderOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input>
             </a-form-item>
           </a-col>
         </a-row>
 
-        <a-form-item v-if="form.inputType==='theme'" label="主题" :required="form.inputType==='theme'">
-          <a-input v-model:value="form.theme" placeholder="请输入一个主题" />
+        <a-form-item v-if="form.inputType==='theme'" label="主题" :required="form.inputType==='theme'" name="theme">
+          <a-input v-model:value="form.theme" placeholder="请输入一个主题" allow-clear>
+            <template #prefix>
+              <BulbOutlined style="margin-right: 8px;" />
+            </template>
+          </a-input>
         </a-form-item>
-        <a-form-item v-else-if="form.inputType==='text'" label="文本" :required="form.inputType==='text'">
-          <a-textarea v-model:value="form.text" :rows="6" placeholder="粘贴或输入文本" />
+        <a-form-item v-else-if="form.inputType==='text'" label="文本" :required="form.inputType==='text'" name="text">
+          <div style="position: relative;">
+            <FileTextOutlined style="position: absolute; left: 12px; top: 12px; z-index: 1;" />
+            <a-textarea
+              v-model:value="form.text"
+              :rows="6"
+              placeholder="粘贴或输入文本"
+              style="padding: 7px 11px 7px 36px;"
+            />
+          </div>
         </a-form-item>
-        <a-form-item v-else label="文档文件" :required="form.inputType==='file'">
+        <a-form-item v-else label="文档文件" :required="form.inputType==='file'" name="file">
           <a-upload
             :before-upload="handleBeforeUpload"
             :maxCount="1"
@@ -38,28 +77,52 @@
             :file-list="fileList"
             @remove="handleRemoveFile"
           >
-            <a-button>选择文件（PDF/DOCX/MD）</a-button>
+            <a-button>
+              <template #icon>
+                <UploadOutlined />
+              </template>
+              选择文件（PDF/DOCX/MD）
+            </a-button>
           </a-upload>
         </a-form-item>
 
-        <a-divider>Provider</a-divider>
+        <a-divider>模型配置</a-divider>
         <a-row :gutter="12">
           <a-col :span="8">
-            <a-form-item label="类型">
-              <a-select v-model:value="form.provider.type">
-                <a-select-option value="ollama">本地（Ollama）</a-select-option>
-                <a-select-option value="openai">云端（OpenAI 兼容）</a-select-option>
+            <a-form-item label="预设">
+              <a-select
+                v-model:value="selectedPresetKey"
+                placeholder="选择预设或手动配置"
+                @change="handlePresetChange"
+              >
+                <a-select-option
+                  v-for="preset in aiStore.providerPresets"
+                  :key="preset.key"
+                  :value="preset.key"
+                >
+                  <DesktopOutlined v-if="preset.type === 'ollama'" style="margin-right: 8px;" />
+                  <CloudOutlined v-else style="margin-right: 8px;" />
+                  {{ preset.name }}
+                </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="模型" :required="true">
-              <a-input v-model:value="form.provider.model" placeholder="如 gpt-4o-mini 或 gemma3:4b" />
+            <a-form-item label="模型" :required="true" name="provider.model" :validate-trigger="['onSubmit']">
+              <a-input v-model:value="form.provider.model" placeholder="如 gpt-4o-mini 或 qwen2:7b-instruct" allow-clear>
+                <template #prefix>
+                  <RobotOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input>
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="Base URL">
-              <a-input v-model:value="form.provider.baseUrl" placeholder="可选，覆盖默认端点" />
+            <a-form-item label="Base URL" :required="true" name="provider.baseUrl" :validate-trigger="['onSubmit']">
+              <a-input v-model:value="form.provider.baseUrl" placeholder="请输入 Base URL" allow-clear>
+                <template #prefix>
+                  <GlobalOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input>
             </a-form-item>
           </a-col>
         </a-row>
@@ -67,17 +130,29 @@
         <a-row :gutter="12">
           <a-col :span="8">
             <a-form-item label="温度">
-              <a-input-number v-model:value="form.provider.temperature" :min="0" :max="2" :step="0.1" placeholder="控制随机性，越高越发散（0-2）" style="width: 100%" />
+              <a-input-number v-model:value="form.provider.temperature" :min="0" :max="2" :step="0.1" placeholder="控制随机性，越高越发散（0-2）" style="width: 100%">
+                <template #prefix>
+                  <FireOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input-number>
             </a-form-item>
           </a-col>
           <a-col :span="8">
             <a-form-item label="Top P">
-              <a-input-number v-model:value="form.provider.top_p" :min="0" :max="1" :step="0.05" placeholder="核采样阈值，越小越保守（0-1）" style="width: 100%" />
+              <a-input-number v-model:value="form.provider.top_p" :min="0" :max="1" :step="0.05" placeholder="核采样阈值，越小越保守（0-1）" style="width: 100%">
+                <template #prefix>
+                  <PercentageOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input-number>
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="API Key">
-              <a-input-password v-model:value="form.provider.apiKey" placeholder="不保存，仅本次使用" />
+            <a-form-item label="API Key" :required="form.provider.type === 'openai'" name="provider.apiKey" v-if="form.provider.type === 'openai'">
+              <a-input-password v-model:value="form.provider.apiKey" placeholder="不保存，仅本次使用" allow-clear>
+                <template #prefix>
+                  <KeyOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input-password>
             </a-form-item>
           </a-col>
         </a-row>
@@ -86,17 +161,28 @@
         <a-row :gutter="12">
           <a-col :span="8">
             <a-form-item label="最大层级">
-              <a-input-number v-model:value="form.options.depthLimit" :min="1" :max="6" style="width: 100%" />
+              <a-input-number v-model:value="form.options.depthLimit" :min="1" :max="16" style="width: 100%">
+                <template #prefix>
+                  <SettingOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input-number>
             </a-form-item>
           </a-col>
           <a-col :span="8">
             <a-form-item label="每层最大分支数">
-              <a-input-number v-model:value="form.options.branchingFactor" :min="1" :max="12" style="width: 100%" />
+              <a-input-number v-model:value="form.options.branchingFactor" :min="1" :max="16" style="width: 100%">
+                <template #prefix>
+                  <BranchesOutlined style="margin-right: 8px;" />
+                </template>
+              </a-input-number>
             </a-form-item>
           </a-col>
           <a-col :span="8">
             <a-form-item label="输出语言">
               <a-select v-model:value="form.options.language">
+                <template #suffixIcon>
+                  <TranslationOutlined />
+                </template>
                 <a-select-option value="zh">中文</a-select-option>
                 <a-select-option value="en">English</a-select-option>
               </a-select>
@@ -104,13 +190,7 @@
           </a-col>
         </a-row>
 
-        <a-row :gutter="12">
-          <a-col :span="8">
-            <a-form-item label="调试模式">
-              <a-switch v-model:checked="form.debug" />
-            </a-form-item>
-          </a-col>
-        </a-row>
+
 
         <a-alert v-if="errorMsg" type="error" :message="errorMsg" :description="errorDetails" show-icon />
 
@@ -122,8 +202,6 @@
 
       <a-divider v-if="preview">预览</a-divider>
       <pre v-if="preview" class="preview">{{ JSON.stringify(preview, null, 2) }}</pre>
-      <a-divider v-if="preview?.rawContent">模型原文</a-divider>
-      <pre v-if="preview?.rawContent" class="preview raw">{{ preview?.rawContent }}</pre>
     </div>
     <!-- 选择目标文件夹弹窗 -->
     <DocTreeModal
@@ -137,27 +215,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
+import {
+  FolderOutlined,
+  BulbOutlined,
+  FileTextOutlined,
+  UploadOutlined,
+  RobotOutlined,
+  GlobalOutlined,
+  KeyOutlined,
+  SettingOutlined,
+  BranchesOutlined,
+  TranslationOutlined,
+  DesktopOutlined,
+  CloudOutlined,
+  FireOutlined,
+  PercentageOutlined
+} from '@ant-design/icons-vue'
 import aiApi, { type GenerateMoteResponseData } from '@/services/aiApi'
 import { importMoteDataJson } from '@/services/moteApi'
-import { message } from 'ant-design-vue'
+import { message, type FormInstance } from 'ant-design-vue'
 import type { UploadFile } from 'ant-design-vue'
-import { useAiGenerateStore } from '@/stores/aiGenerateStore'
+import { useAiStore } from '@/stores/aiStore'
 import { storeToRefs } from 'pinia'
 import { useDocStore } from '@/stores/docStore'
 import DocTreeModal from './DocTreeModal.vue'
+import type { DocNode } from '@/stores/docStore'
 
 const loading = ref(false)
 const errorMsg = ref<string | null>(null)
 const errorDetails = ref<string | null>(null)
 const errorCode = ref<string | null>(null)
-const aiStore = useAiGenerateStore()
+const aiStore = useAiStore()
 const form = aiStore.form
 const { preview } = storeToRefs(aiStore)
 const docStore = useDocStore()
 const fileList = ref<UploadFile[]>([])
 let selectedFile: File | null = null
 const pickFolderOpen = ref(false)
+const selectedPresetKey = ref<string>('')
+const formRef = ref<FormInstance>()
+
+// 根据key查找文件夹名称的计算属性
+const selectedFolderName = computed(() => {
+  if (!form.docParentKey) return ''
+
+  // 如果是根节点，直接返回根节点名称
+  if (form.docParentKey === docStore.docTree.key) {
+    return docStore.docTree.title || '我的文档'
+  }
+
+  const findNodeName = (nodes: DocNode[]): string => {
+    for (const node of nodes) {
+      if (node.key === form.docParentKey) {
+        return node.title
+      }
+      if (node.children && node.children.length > 0) {
+        const found = findNodeName(node.children)
+        if (found) return found
+      }
+    }
+    return ''
+  }
+
+  return findNodeName(docStore.docTree.children || [])
+})
 
 const openPickFolder = () => {
   pickFolderOpen.value = true
@@ -167,14 +289,38 @@ const handlePickFolderConfirm = (folderKey: string) => {
   aiStore.form.docParentKey = folderKey
 }
 
+// 处理预设选择
+const handlePresetChange = (presetKey: string) => {
+  selectedPresetKey.value = presetKey
+  aiStore.selectPreset(presetKey)
+  // 清除表单验证错误
+  nextTick(() => {
+    if (formRef.value) {
+      formRef.value.clearValidate()
+    }
+  })
+}
+
 onMounted(async () => {
-  // 默认 docParentKey 使用文档树根节点
-  if (!docStore.isInitialized && !docStore.isLoading) {
-    await docStore.fetchDocTree()
+  // 使用仓库的初始化方法，只在第一次调用时获取根节点key
+  await aiStore.initialize()
+
+  // 设置默认预设选择
+  const defaultPreset = aiStore.providerPresets.find(preset =>
+    preset.type === form.provider.type &&
+    preset.model === form.provider.model &&
+    preset.baseUrl === form.provider.baseUrl
+  )
+  if (defaultPreset) {
+    selectedPresetKey.value = defaultPreset.key
   }
-  if (docStore.docTree.key) {
-    aiStore.form.docParentKey = docStore.docTree.key
-  }
+
+  // 清除表单验证错误，清除默认的错误提示
+  nextTick(() => {
+    if (formRef.value) {
+      formRef.value.clearValidate()
+    }
+  })
 })
 
 // 表单默认值与预览由 Pinia 仓库存放
@@ -190,8 +336,61 @@ const handleRemoveFile = () => {
   fileList.value = []
 }
 
+// 表单验证函数
+const validateForm = (): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = []
+
+  // 验证目标文件夹
+  if (!form.docParentKey?.trim()) {
+    errors.push('请选择目标文件夹')
+  }
+
+  // 验证模型名称
+  if (!form.provider.model?.trim()) {
+    errors.push('请输入模型名称')
+  }
+
+  // 验证 Base URL
+  if (!form.provider.baseUrl?.trim()) {
+    errors.push('请输入 Base URL')
+  }
+
+  // 当类型为云端时，验证 API Key
+  if (form.provider.type === 'openai' && !form.provider.apiKey?.trim()) {
+    errors.push('请输入 API Key')
+  }
+
+  // 根据输入类型验证对应字段
+  if (form.inputType === 'theme') {
+    if (!form.theme?.trim()) {
+      errors.push('请输入主题')
+    }
+  } else if (form.inputType === 'text') {
+    if (!form.text?.trim()) {
+      errors.push('请输入文本内容')
+    }
+  } else if (form.inputType === 'file') {
+    if (!selectedFile) {
+      errors.push('请选择文件')
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
 const handleGenerate = async () => {
   if (loading.value) return
+
+  // 表单验证
+  const validation = validateForm()
+  if (!validation.isValid) {
+    message.error(validation.errors.join('、'))
+    return
+  }
+
   errorMsg.value = null
   errorDetails.value = null
   errorCode.value = null
@@ -212,7 +411,6 @@ const handleGenerate = async () => {
       fd.append('provider', JSON.stringify(form.provider))
       fd.append('options', JSON.stringify(form.options || {}))
       fd.append('create', String(!!form.create))
-      fd.append('debug', String(!!form.debug))
 
       const resp = await aiApi.generateMoteFromFile(fd)
       data = resp.data

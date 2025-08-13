@@ -1,3 +1,23 @@
+<!--
+  节点操作卡片组件
+
+  主要功能：
+  - 显示选中节点的详细信息
+  - 提供节点文本编辑功能
+  - 集成节点操作按钮
+  - 显示操作快捷键说明
+
+  Props:
+  - moteStore: 脑图状态管理 Store
+  - renderGraph: 重新渲染图形的函数
+  - selectNode: 选中节点的函数
+
+  Events:
+  - updateEditingText: 更新编辑文本
+  - updateIsEditing: 更新编辑状态
+  - startEditing: 开始编辑
+  - handleTextConfirm: 确认文本编辑
+-->
 <template>
   <transition name="fade-slide" appear>
     <a-card v-if="moteStore.selectedNodeId" :style="cardStyle" size="default">
@@ -49,25 +69,58 @@ import { useMoteStore } from '@/stores/moteStore'
 import NodeOperations from './NodeOperations.vue'
 
 // ==================== Props & Emits ====================
+/**
+ * 组件属性接口
+ *
+ * 定义组件接收的外部参数
+ */
 interface Props {
+  /** 脑图状态管理 Store */
   moteStore: ReturnType<typeof useMoteStore>
+  /** 重新渲染图形的函数 */
   renderGraph: () => void
+  /** 选中节点的函数 */
   selectNode: (nodeId: string) => void
 }
 
 const props = defineProps<Props>()
+
+/**
+ * 组件事件定义
+ *
+ * 定义组件向父组件发送的事件
+ */
 const emit = defineEmits<{
+  /** 更新编辑文本事件 */
   updateEditingText: [text: string]
+  /** 更新编辑状态事件 */
   updateIsEditing: [isEditing: boolean]
+  /** 开始编辑事件 */
   startEditing: []
+  /** 确认文本编辑事件 */
   handleTextConfirm: []
 }>()
 
 // ==================== 本地状态 ====================
+/**
+ * 本地编辑文本状态
+ *
+ * 用于同步 store 中的编辑文本，避免直接修改 store 状态
+ */
 const localEditingText = ref('')
+
+/**
+ * 文本域引用
+ *
+ * 用于操作文本域元素，如聚焦、选择等
+ */
 const textareaRef = ref<HTMLTextAreaElement>()
 
-// 同步 store 中的编辑文本到本地状态
+/**
+ * 同步 store 中的编辑文本到本地状态
+ *
+ * 监听 store 中编辑文本的变化，同步到本地状态
+ */
 watch(
   () => props.moteStore.editingNodeText,
   (newText) => {
@@ -76,17 +129,26 @@ watch(
   { immediate: true },
 )
 
-// 同步本地编辑文本到 store
+/**
+ * 同步本地编辑文本到 store
+ *
+ * 当处于编辑状态时，将本地文本变化同步到 store
+ */
 watch(
   () => localEditingText.value,
   (newText) => {
     if (props.moteStore.isEditing) {
-      props.moteStore.editingNodeText = newText
+      emit('updateEditingText', newText)
     }
   },
 )
 
-// 监听编辑状态变化，自动聚焦输入框
+/**
+ * 监听编辑状态变化，自动聚焦输入框
+ *
+ * 当进入编辑状态时，自动聚焦到文本域并选择全部内容
+ * 使用多次尝试机制确保聚焦成功
+ */
 watch(
   () => props.moteStore.isEditing,
   (isEditing) => {
@@ -123,6 +185,13 @@ watch(
 )
 
 // ==================== 计算属性 ====================
+/**
+ * 卡片样式计算属性
+ *
+ * 根据组件状态计算卡片的样式，包括位置、大小、阴影等
+ *
+ * @returns {object} 卡片样式对象
+ */
 const cardStyle = computed(() => ({
   position: 'absolute',
   bottom: '40px',
@@ -133,6 +202,13 @@ const cardStyle = computed(() => ({
   borderRadius: '12px',
 }))
 
+/**
+ * 文本域样式计算属性
+ *
+ * 根据编辑状态计算文本域的样式，包括边框颜色等
+ *
+ * @returns {object} 文本域样式对象
+ */
 const textareaStyle = computed(() => ({
   border: props.moteStore.isEditing ? '1px solid #1890ff' : '1px solid #d9d9d9',
   borderRadius: '8px',
@@ -141,10 +217,20 @@ const textareaStyle = computed(() => ({
 }))
 
 // ==================== 编辑相关函数 ====================
+/**
+ * 处理文本域聚焦事件
+ *
+ * 当文本域获得焦点时，触发开始编辑事件
+ */
 const handleTextFocus = () => {
   emit('startEditing')
 }
 
+/**
+ * 处理文本域失焦事件
+ *
+ * 当文本域失去焦点且不在编辑状态时，清空本地编辑文本
+ */
 const handleTextBlur = () => {
   setTimeout(() => {
     if (!props.moteStore.isEditing) {
@@ -153,6 +239,13 @@ const handleTextBlur = () => {
   }, 200)
 }
 
+/**
+ * 处理文本确认事件
+ *
+ * 确认文本编辑，更新 store 中的文本并重新渲染图形
+ * 延迟执行以确保状态更新完成
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const handleTextConfirm = () => {
   // 通过 emit 更新编辑文本
   emit('updateEditingText', localEditingText.value)
@@ -163,6 +256,13 @@ const handleTextConfirm = () => {
   })
 }
 
+/**
+ * 处理文本取消事件
+ *
+ * 取消文本编辑，恢复原始文本并退出编辑状态
+ *
+ * @param {KeyboardEvent} event - 键盘事件对象
+ */
 const handleTextCancel = () => {
   localEditingText.value = props.moteStore.originalText
   // 通过 emit 更新编辑状态
