@@ -112,10 +112,10 @@ export const useDocStore = defineStore('docStore', () => {
    * @throws {Error} 当网络请求失败时
    * @throws {Error} 当用户未授权时
    */
-  const fetchDocTree = async (): Promise<ApiResponse<{ docTree: DocNode }>> => {
+  const fetchDocTree = async (language?: 'zh-CN' | 'en-US'): Promise<ApiResponse<{ docTree: DocNode }>> => {
     try {
       isLoading.value = true
-      const data = await getDocTree()
+      const data = await getDocTree(language)
 
       if (data.success && data.data) {
         docTree.value = data.data.docTree

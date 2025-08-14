@@ -1,5 +1,21 @@
 # Motes 前端 Web 应用
 
+<p align="center">
+  <a href="../README.md">
+    <img src="https://img.shields.io/badge/主-README-blue?style=for-the-badge&logo=markdown" alt="主 README">
+  </a>
+  <a href="../motes-backend/README.md">
+    <img src="https://img.shields.io/badge/后端-README-blue?style=for-the-badge&logo=markdown" alt="后端 README">
+  </a>
+  <a href="../API_DOCUMENTATION.md">
+    <img src="https://img.shields.io/badge/API-DOCUMENTATION-blue?style=for-the-badge&logo=markdown" alt="API DOCUMENTATION">
+  <br />
+  <a href="./README_en.md">
+    <img src="https://img.shields.io/badge/English-README-green?style=for-the-badge&logo=markdown" alt="English README">
+  </a>
+  </a>
+</p>
+
 ## 📖 项目简介
 
 Motes 前端是脑图笔记Web应用的用户界面层，基于 Vue 3 和 AntV X6 图形引擎构建，提供直观的思维导图编辑和便捷的大纲笔记操作功能，为用户打造流畅的知识管理体验。
@@ -67,11 +83,14 @@ Motes 前端致力于将碎片化的知识微粒连接起来，通过思维导�
 ### 状态管理
 - **Pinia 3.0.3** - Vue 的状态管理库
 
-### 路由
+### 路由管理
 - **Vue Router 4.5.1** - Vue.js 官方路由管理器
 
 ### 网络请求
 - **Axios 1.11.0** - 基于 Promise 的 HTTP 客户端
+
+### 国际化
+- **Vue I18n 9.14.5** - Vue.js 国际化插件
 
 ### 工具库
 - **nanoid 5.1.5** - 唯一 ID 生成器
@@ -89,6 +108,7 @@ Motes 前端致力于将碎片化的知识微粒连接起来，通过思维导�
 motes-frontend/
 ├── src/
 │   ├── components/          # 组件目录
+│   │   ├── LanguageSwitch.vue    # 语言切换组件
 │   │   ├── layout/         # 布局组件
 │   │   │   ├── AppHeader.vue      # 应用头部
 │   │   │   ├── AppSidebar.vue     # 侧边栏
@@ -110,6 +130,11 @@ motes-frontend/
 │   │       ├── OutlineNode.vue    # 大纲节点
 │   │       ├── ShortcutsPanel.vue # 快捷键面板
 │   │       └── useNoteScroll.ts   # 滚动同步钩子
+│   ├── i18n/              # 国际化配置
+│   │   ├── index.ts       # i18n 实例配置
+│   │   └── locales/       # 语言包文件
+│   │       ├── zh-CN.ts   # 中文语言包
+│   │       └── en-US.ts   # 英文语言包
 │   ├── views/             # 页面视图
 │   │   ├── HomePage.vue   # 首页
 │   │   ├── LoginPage.vue  # 登录页
@@ -199,12 +224,14 @@ npm run format
 - **状态管理**：使用 Pinia 进行集中状态管理
 - **路由管理**：基于 Vue Router 的单页应用路由
 - **API 集成**：统一的 API 服务层设计
+- **国际化支持**：基于 Vue I18n 的多语言支持
 
 ### 组件开发
 - 使用 Vue 3 Composition API
 - 遵循 TypeScript 类型定义
 - 组件命名采用 PascalCase
 - 文件命名采用 kebab-case
+- 支持国际化文本
 
 ### 状态管理
 - 使用 Pinia 进行状态管理
@@ -360,9 +387,8 @@ npm run format
 
 ## 🔗 相关链接
 
-- [本项目后端文档](../motes-backend/README.md)
-- [本项目 API 文档](../API_DOCUMENTATION.md)
 - [Vue.js 文档](https://vuejs.org/)
+- [Vue I18n 文档](https://vue-i18n.intlify.dev/)
 - [Ant Design Vue 文档](https://antdv.com/)
 - [AntV X6 文档](https://x6.antv.antgroup.com/)
 

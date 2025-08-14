@@ -23,11 +23,11 @@
         <template v-if="contextType === 'trash'">
           <a-menu-item key="restore">
             <UndoOutlined />
-            恢复
+            {{ t('DocContextMenuVue.menuItems.restore') }}
           </a-menu-item>
           <a-menu-item key="delete-permanently" danger>
             <DeleteOutlined />
-            永久删除
+            {{ t('common.delete') }}
           </a-menu-item>
         </template>
 
@@ -37,27 +37,27 @@
           <template v-if="nodeType === 'folder'">
             <a-menu-item key="new-mote">
               <FileMarkdownOutlined />
-              新建文档
+              {{ t('AppSidebarVue.addMenu.newMote') }}
             </a-menu-item>
             <a-menu-item key="new-folder">
               <FolderOpenOutlined />
-              新建文件夹
+              {{ t('AppSidebarVue.addMenu.newFolder') }}
             </a-menu-item>
             <a-menu-item key="duplicate">
               <CopyOutlined />
-              创建副本
+              {{ t('DocContextMenuVue.menuItems.copy') }}
             </a-menu-item>
             <a-menu-item key="move">
               <FolderOpenOutlined />
-              移动到...
+              {{ t('DocContextMenuVue.menuItems.move') }}
             </a-menu-item>
             <a-menu-item key="rename">
               <EditOutlined />
-              重命名
+              {{ t('DocContextMenuVue.menuItems.rename') }}
             </a-menu-item>
             <a-menu-item key="delete">
               <DeleteOutlined />
-              删除
+              {{ t('DocContextMenuVue.menuItems.delete') }}
             </a-menu-item>
           </template>
 
@@ -65,19 +65,19 @@
           <template v-else-if="nodeType === 'mote'">
             <a-menu-item key="duplicate">
               <CopyOutlined />
-              创建副本
+              {{ t('DocContextMenuVue.menuItems.copy') }}
             </a-menu-item>
             <a-menu-item key="move">
               <FolderOpenOutlined />
-              移动到...
+              {{ t('DocContextMenuVue.menuItems.move') }}
             </a-menu-item>
             <a-menu-item key="rename">
               <EditOutlined />
-              重命名
+              {{ t('DocContextMenuVue.menuItems.rename') }}
             </a-menu-item>
             <a-menu-item key="delete">
               <DeleteOutlined />
-              删除
+              {{ t('DocContextMenuVue.menuItems.delete') }}
             </a-menu-item>
           </template>
         </template>
@@ -87,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import {
   FileMarkdownOutlined,
   FolderOpenOutlined,
@@ -95,6 +96,8 @@ import {
   DeleteOutlined,
   UndoOutlined,
 } from '@ant-design/icons-vue'
+
+const { t } = useI18n()
 
 /**
  * 组件属性接口

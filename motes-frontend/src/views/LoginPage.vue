@@ -16,11 +16,16 @@
 -->
 <template>
   <div class="auth-container">
+    <!-- 语言切换按钮 -->
+    <div class="language-switch-container">
+      <LanguageSwitch />
+    </div>
+
     <div class="auth-card">
       <!-- 头部区域：应用标题和描述 -->
       <div class="auth-header">
-        <h1>Motes</h1>
-        <p>思维导图 / 大纲笔记</p>
+        <h1>{{ t('app.name') }}</h1>
+        <p>{{ t('app.slogan') }}</p>
       </div>
 
       <!-- 认证模式切换区域 -->
@@ -28,8 +33,8 @@
         <a-segmented
           v-model:value="authMode"
           :options="[
-            { label: '登录', value: 'login' },
-            { label: '注册', value: 'register' },
+            { label: t('common.login'), value: 'login' },
+            { label: t('common.register'), value: 'register' },
           ]"
           size="large"
           block
@@ -52,7 +57,7 @@
               <a-input
                 v-model:value="loginForm.username"
                 size="large"
-                placeholder="用户名"
+                :placeholder="t('common.username')"
                 :disabled="isLoading"
               >
                 <template #prefix>
@@ -65,7 +70,7 @@
               <a-input-password
                 v-model:value="loginForm.password"
                 size="large"
-                placeholder="密码"
+                :placeholder="t('common.password')"
                 :disabled="isLoading"
               >
                 <template #prefix>
@@ -82,7 +87,7 @@
               class="auth-button"
               block
             >
-              {{ isLoading ? '登录中...' : '登录' }}
+              {{ isLoading ? t('common.loading') : t('common.login') }}
             </a-button>
           </form>
 
@@ -98,7 +103,7 @@
               <a-input
                 v-model:value="registerForm.username"
                 size="large"
-                placeholder="用户名"
+                :placeholder="t('LoginPageVue.usernamePlaceholder')"
                 :disabled="isLoading"
               >
                 <template #prefix>
@@ -111,7 +116,7 @@
               <a-input
                 v-model:value="registerForm.email"
                 size="large"
-                placeholder="邮箱"
+                :placeholder="t('LoginPageVue.emailPlaceholder')"
                 :disabled="isLoading"
               >
                 <template #prefix>
@@ -124,7 +129,7 @@
               <a-input-password
                 v-model:value="registerForm.password"
                 size="large"
-                placeholder="密码"
+                :placeholder="t('LoginPageVue.passwordPlaceholder')"
                 :disabled="isLoading"
               >
                 <template #prefix>
@@ -137,7 +142,7 @@
               <a-input-password
                 v-model:value="registerForm.confirmPassword"
                 size="large"
-                placeholder="确认密码"
+                :placeholder="t('LoginPageVue.confirmPasswordPlaceholder')"
                 :disabled="isLoading"
               >
                 <template #prefix>
@@ -154,15 +159,15 @@
               class="auth-button"
               block
             >
-              {{ isLoading ? '注册中...' : '注册' }}
+              {{ isLoading ? t('LoginPageVue.loadingRegister') : t('LoginPageVue.registerButton') }}
             </a-button>
           </form>
         </transition>
       </div>
 
       <div class="auth-footer">
-        <p v-if="isLogin">请输入用户名和密码登录</p>
-        <p v-else>请填写完整信息进行注册</p>
+        <p v-if="isLogin">{{ t('LoginPageVue.loginHint') }}</p>
+        <p v-else>{{ t('LoginPageVue.registerHint') }}</p>
       </div>
     </div>
   </div>
@@ -181,11 +186,14 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitch from '../components/LanguageSwitch.vue'
 
 // ==================== 路由和状态管理 ====================
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const { t } = useI18n()
 
 // ==================== 认证模式管理 ====================
 /**
@@ -339,7 +347,7 @@ const onFormLeave = (el: Element) => {
 const handleLogin = async () => {
   // 表单验证
   if (!loginForm.value.username || !loginForm.value.password) {
-    message.error('请输入用户名和密码')
+    message.error(t('LoginPageVue.validationErrors.requiredFields'))
     return
   }
 
@@ -347,14 +355,14 @@ const handleLogin = async () => {
     const result = await userStore.login(loginForm.value.username, loginForm.value.password)
 
     if (result.success) {
-      message.success('登录成功')
+      message.success(t('LoginPageVue.successMessages.loginSuccess'))
       // 登录成功，跳转到用户文档页面
       router.push('/documents')
     } else {
-      message.error(result.error?.details || result.error?.message || '登录失败')
+      message.error(result.error?.details || result.error?.message || t('LoginPageVue.validationErrors.loginFailed'))
     }
   } catch {
-    message.error('登录失败，请重试')
+    message.error(t('LoginPageVue.validationErrors.loginFailed'))
   }
 }
 
@@ -377,26 +385,26 @@ const handleRegister = async () => {
     !registerForm.value.password ||
     !registerForm.value.confirmPassword
   ) {
-    message.error('请填写所有必填项')
+    message.error(t('LoginPageVue.validationErrors.requiredFields'))
     return
   }
 
   // 密码一致性验证
   if (registerForm.value.password !== registerForm.value.confirmPassword) {
-    message.error('两次输入的密码不一致')
+    message.error(t('LoginPageVue.validationErrors.passwordMismatch'))
     return
   }
 
   // 密码长度验证
   if (registerForm.value.password.length < 6) {
-    message.error('密码长度至少6位')
+    message.error(t('LoginPageVue.validationErrors.passwordLength'))
     return
   }
 
   // 邮箱格式验证
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(registerForm.value.email)) {
-    message.error('请输入有效的邮箱地址')
+    message.error(t('LoginPageVue.validationErrors.invalidEmail'))
     return
   }
 
@@ -408,14 +416,14 @@ const handleRegister = async () => {
     )
 
     if (result.success) {
-      message.success('注册成功')
+      message.success(t('LoginPageVue.successMessages.registerSuccess'))
       // 注册并登录成功，跳转到应用页面
       router.push('/documents')
     } else {
-      message.error(result.error?.details || result.error?.message || '注册失败')
+      message.error(result.error?.details || result.error?.message || t('LoginPageVue.validationErrors.registerFailed'))
     }
   } catch {
-    message.error('注册失败，请重试')
+    message.error(t('LoginPageVue.validationErrors.registerFailed'))
   }
 }
 </script>
@@ -428,6 +436,14 @@ const handleRegister = async () => {
   justify-content: center;
   background-color: #f5f5f5;
   padding: 20px;
+  position: relative;
+}
+
+.language-switch-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
 }
 
 .auth-card {

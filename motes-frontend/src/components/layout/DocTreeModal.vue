@@ -23,8 +23,8 @@
 <template>
   <a-modal
     v-model:open="openValue"
-    :title="title"
-    :okText="okText"
+    :title="title || t('DocTreeModalVue.defaultTitle')"
+    :okText="okText || t('DocTreeModalVue.buttons.confirm')"
     :confirmLoading="confirmLoading"
     :maskClosable="false"
     @ok="handleOk"
@@ -40,7 +40,7 @@
       @select="onSelect"
     >
       <template #title="{ dataRef }">
-        <span>{{ dataRef.title || '根目录' }}</span>
+        <span>{{ dataRef.title || t('common.root') }}</span>
       </template>
     </a-tree>
   </a-modal>
@@ -48,7 +48,10 @@
 
 <script setup   lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useDocStore, type DocNode } from '@/stores/docStore'
+
+const { t } = useI18n()
 
 /**
  * 组件属性接口

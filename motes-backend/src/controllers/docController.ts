@@ -69,8 +69,9 @@ export class DocController {
   static async getDocTree(req: Request, res: Response) {
     try {
       const userId = req.user!.userId;
+      const language = req.query.language as 'zh-CN' | 'en-US' || 'zh-CN';
       
-      const result = await DocService.getDocTree(userId);
+      const result = await DocService.getDocTree(userId, language);
 
       res.json({
         success: true,

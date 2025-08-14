@@ -43,12 +43,14 @@
   <Transition name="fade-slide">
     <div v-if="showPopupButton" class="popup-button" @click="$emit('show')">
       <span class="popup-icon">?</span>
-      <span class="popup-tooltip">快捷键</span>
+      <span class="popup-tooltip">{{ t('ShortcutsPanelVue.popupTooltip') }}</span>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 // ==================== Props 定义 ====================
 interface Props {
   showCard: boolean
@@ -70,22 +72,25 @@ interface Shortcut {
   description: string
 }
 
+// ==================== 国际化 ====================
+const { t } = useI18n()
+
 // ==================== 快捷键配置 ====================
 const shortcuts: Shortcut[] = [
-  { key: 'Ctrl + E', description: 'AI 生枝' },
-  { key: 'Click', description: '单击选中' },
-  { key: 'F2', description: '点击选中节点编辑' },
-  { key: '↑', description: '上一个节点' },
-  { key: '↓', description: '下一个节点' },
-  { key: 'Esc', description: '取消选中' },
-  { key: 'Enter', description: '添加子节点' },
-  { key: 'Shift + Enter', description: '添加同级节点' },
-  { key: 'Delete', description: '删除节点' },
-  { key: 'Tab', description: '降级节点' },
-  { key: 'Shift + Tab', description: '升级节点' },
-  { key: 'Ctrl + ↑', description: '向上移动' },
-  { key: 'Ctrl + ↓', description: '向下移动' },
-  { key: 'Alt + .', description: '折叠/展开' },
+  { key: 'Ctrl + E', description: t('ShortcutsPanelVue.descriptions.aiExpand') },
+  { key: 'Click', description: t('ShortcutsPanelVue.descriptions.clickSelect') },
+  { key: 'F2', description: t('ShortcutsPanelVue.descriptions.clickEdit') },
+  { key: '↑', description: t('ShortcutsPanelVue.descriptions.previousNode') },
+  { key: '↓', description: t('ShortcutsPanelVue.descriptions.nextNode') },
+  { key: 'Esc', description: t('ShortcutsPanelVue.descriptions.deselect') },
+  { key: 'Enter', description: t('ShortcutsPanelVue.descriptions.addChild') },
+  { key: 'Shift + Enter', description: t('ShortcutsPanelVue.descriptions.addSibling') },
+  { key: 'Delete', description: t('ShortcutsPanelVue.descriptions.deleteNode') },
+  { key: 'Tab', description: t('ShortcutsPanelVue.descriptions.demoteNode') },
+  { key: 'Shift + Tab', description: t('ShortcutsPanelVue.descriptions.promoteNode') },
+  { key: 'Ctrl + ↑', description: t('ShortcutsPanelVue.descriptions.moveUp') },
+  { key: 'Ctrl + ↓', description: t('ShortcutsPanelVue.descriptions.moveDown') },
+  { key: 'Alt + .', description: t('ShortcutsPanelVue.descriptions.toggleCollapse') }
 ]
 </script>
 

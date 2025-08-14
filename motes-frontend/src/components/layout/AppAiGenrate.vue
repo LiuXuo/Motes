@@ -11,33 +11,33 @@
 -->
 <template>
   <div class="ai-generate-page">
-    <h1 class="page-title">AI 生成配置</h1>
+    <h1 class="page-title">{{ t('AppAiGenrateVue.title') }}</h1>
     <div class="panel">
       <a-form ref="formRef" :model="form" layout="vertical">
         <a-row :gutter="12">
           <a-col :span="8">
-            <a-form-item label="输入类型">
+            <a-form-item :label="t('AppAiGenrateVue.inputType')">
               <a-select v-model:value="form.inputType">
                 <a-select-option value="theme">
                   <BulbOutlined style="margin-right: 8px;" />
-                  主题
+                  {{ t('AppAiGenrateVue.inputTypeOptions.theme') }}
                 </a-select-option>
                 <a-select-option value="text">
                   <FileTextOutlined style="margin-right: 8px;" />
-                  文本
+                  {{ t('AppAiGenrateVue.inputTypeOptions.text') }}
                 </a-select-option>
                 <a-select-option value="file">
                   <UploadOutlined style="margin-right: 8px;" />
-                  文件（PDF/DOCX/MD）
+                  {{ t('AppAiGenrateVue.inputTypeOptions.file') }}
                 </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
           <a-col :span="16">
-            <a-form-item label="导入到" name="docParentKey">
+            <a-form-item :label="t('AppAiGenrateVue.importTo')" name="docParentKey">
               <a-input
                 :value="selectedFolderName || form.docParentKey"
-                placeholder="请选择目标文件夹"
+                :placeholder="t('AppAiGenrateVue.placeholders.selectTargetFolder')"
                 readonly
                 @click="openPickFolder"
                 style="cursor: pointer;"
@@ -50,25 +50,25 @@
           </a-col>
         </a-row>
 
-        <a-form-item v-if="form.inputType==='theme'" label="主题" :required="form.inputType==='theme'" name="theme">
-          <a-input v-model:value="form.theme" placeholder="请输入一个主题" allow-clear>
+        <a-form-item v-if="form.inputType==='theme'" :label="t('AppAiGenrateVue.theme')" :required="form.inputType==='theme'" name="theme">
+          <a-input v-model:value="form.theme" :placeholder="t('AppAiGenrateVue.placeholders.enterTheme')" allow-clear>
             <template #prefix>
               <BulbOutlined style="margin-right: 8px;" />
             </template>
           </a-input>
         </a-form-item>
-        <a-form-item v-else-if="form.inputType==='text'" label="文本" :required="form.inputType==='text'" name="text">
+        <a-form-item v-else-if="form.inputType==='text'" :label="t('AppAiGenrateVue.text')" :required="form.inputType==='text'" name="text">
           <div style="position: relative;">
             <FileTextOutlined style="position: absolute; left: 12px; top: 12px; z-index: 1;" />
             <a-textarea
               v-model:value="form.text"
               :rows="6"
-              placeholder="粘贴或输入文本"
+              :placeholder="t('AppAiGenrateVue.placeholders.pasteOrEnterText')"
               style="padding: 7px 11px 7px 36px;"
             />
           </div>
         </a-form-item>
-        <a-form-item v-else label="文档文件" :required="form.inputType==='file'" name="file">
+        <a-form-item v-else :label="t('AppAiGenrateVue.documentFile')" :required="form.inputType==='file'" name="file">
           <a-upload
             :before-upload="handleBeforeUpload"
             :maxCount="1"
@@ -81,22 +81,22 @@
               <template #icon>
                 <UploadOutlined />
               </template>
-              选择文件（PDF/DOCX/MD）
+              {{ t('AppAiGenrateVue.buttons.selectFile') }}
             </a-button>
           </a-upload>
         </a-form-item>
 
-        <a-divider>模型配置</a-divider>
+        <a-divider>{{ t('AppAiGenrateVue.dividers.modelConfig') }}</a-divider>
         <a-row :gutter="12">
           <a-col :span="8">
-            <a-form-item label="预设">
+            <a-form-item :label="t('AppAiGenrateVue.preset')">
               <a-select
                 v-model:value="selectedPresetKey"
-                placeholder="选择预设或手动配置"
+                :placeholder="t('AppAiGenrateVue.placeholders.selectPreset')"
                 @change="handlePresetChange"
               >
                 <a-select-option
-                  v-for="preset in aiStore.providerPresets"
+                  v-for="preset in localizedProviderPresets"
                   :key="preset.key"
                   :value="preset.key"
                 >
@@ -108,8 +108,8 @@
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="模型" :required="true" name="provider.model" :validate-trigger="['onSubmit']">
-              <a-input v-model:value="form.provider.model" placeholder="如 gpt-4o-mini 或 qwen2:7b-instruct" allow-clear>
+            <a-form-item :label="t('AppAiGenrateVue.model')" :required="true" name="provider.model" :validate-trigger="['onSubmit']">
+              <a-input v-model:value="form.provider.model" :placeholder="t('AppAiGenrateVue.placeholders.enterModel')" allow-clear>
                 <template #prefix>
                   <RobotOutlined style="margin-right: 8px;" />
                 </template>
@@ -117,8 +117,8 @@
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="Base URL" :required="true" name="provider.baseUrl" :validate-trigger="['onSubmit']">
-              <a-input v-model:value="form.provider.baseUrl" placeholder="请输入 Base URL" allow-clear>
+            <a-form-item :label="t('AppAiGenrateVue.baseUrl')" :required="true" name="provider.baseUrl" :validate-trigger="['onSubmit']">
+              <a-input v-model:value="form.provider.baseUrl" :placeholder="t('AppAiGenrateVue.placeholders.enterBaseUrl')" allow-clear>
                 <template #prefix>
                   <GlobalOutlined style="margin-right: 8px;" />
                 </template>
@@ -129,8 +129,8 @@
 
         <a-row :gutter="12">
           <a-col :span="8">
-            <a-form-item label="温度">
-              <a-input-number v-model:value="form.provider.temperature" :min="0" :max="2" :step="0.1" placeholder="控制随机性，越高越发散（0-2）" style="width: 100%">
+            <a-form-item :label="t('AppAiGenrateVue.temperature')">
+              <a-input-number v-model:value="form.provider.temperature" :min="0" :max="2" :step="0.1" :placeholder="t('AppAiGenrateVue.placeholders.temperatureHint')" style="width: 100%">
                 <template #prefix>
                   <FireOutlined style="margin-right: 8px;" />
                 </template>
@@ -138,17 +138,17 @@
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="Top P">
-              <a-input-number v-model:value="form.provider.top_p" :min="0" :max="1" :step="0.05" placeholder="核采样阈值，越小越保守（0-1）" style="width: 100%">
-                <template #prefix>
-                  <PercentageOutlined style="margin-right: 8px;" />
-                </template>
-              </a-input-number>
-            </a-form-item>
+                    <a-form-item :label="t('AppAiGenrateVue.topP')">
+          <a-input-number v-model:value="form.provider.top_p" :min="0" :max="1" :step="0.05" :placeholder="t('AppAiGenrateVue.placeholders.topPHint')" style="width: 100%">
+            <template #prefix>
+              <PercentageOutlined style="margin-right: 8px;" />
+            </template>
+          </a-input-number>
+        </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="API Key" :required="form.provider.type === 'openai'" name="provider.apiKey" v-if="form.provider.type === 'openai'">
-              <a-input-password v-model:value="form.provider.apiKey" placeholder="不保存，仅本次使用" allow-clear>
+            <a-form-item :label="t('AppAiGenrateVue.apiKey')" :required="form.provider.type === 'openai'" name="provider.apiKey" v-if="form.provider.type === 'openai'">
+              <a-input-password v-model:value="form.provider.apiKey" :placeholder="t('AppAiGenrateVue.placeholders.apiKeyHint')" allow-clear>
                 <template #prefix>
                   <KeyOutlined style="margin-right: 8px;" />
                 </template>
@@ -157,10 +157,10 @@
           </a-col>
         </a-row>
 
-        <a-divider>生成约束</a-divider>
+        <a-divider>{{ t('AppAiGenrateVue.dividers.generationConstraints') }}</a-divider>
         <a-row :gutter="12">
           <a-col :span="8">
-            <a-form-item label="最大层级">
+            <a-form-item :label="t('AppAiGenrateVue.maxLevel')">
               <a-input-number v-model:value="form.options.depthLimit" :min="1" :max="16" style="width: 100%">
                 <template #prefix>
                   <SettingOutlined style="margin-right: 8px;" />
@@ -169,7 +169,7 @@
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="每层最大分支数">
+            <a-form-item :label="t('AppAiGenrateVue.maxBranches')">
               <a-input-number v-model:value="form.options.branchingFactor" :min="1" :max="16" style="width: 100%">
                 <template #prefix>
                   <BranchesOutlined style="margin-right: 8px;" />
@@ -178,13 +178,13 @@
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item label="输出语言">
+            <a-form-item :label="t('AppAiGenrateVue.outputLanguage')">
               <a-select v-model:value="form.options.language">
                 <template #suffixIcon>
                   <TranslationOutlined />
                 </template>
-                <a-select-option value="zh">中文</a-select-option>
-                <a-select-option value="en">English</a-select-option>
+                <a-select-option value="zh">{{ t('AppAiGenrateVue.languages.zh') }}</a-select-option>
+                <a-select-option value="en">{{ t('AppAiGenrateVue.languages.en') }}</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -195,19 +195,19 @@
         <a-alert v-if="errorMsg" type="error" :message="errorMsg" :description="errorDetails" show-icon />
 
         <div class="actions">
-          <a-button :disabled="!preview" @click="handleImport">导入创建</a-button>
-          <a-button class="primary-btn" type="primary" :loading="loading" @click="handleGenerate">生成预览</a-button>
+          <a-button :disabled="!preview" @click="handleImport">{{ t('AppAiGenrateVue.buttons.importCreate') }}</a-button>
+          <a-button class="primary-btn" type="primary" :loading="loading" @click="handleGenerate">{{ loading ? t('AppAiGenrateVue.buttons.generating') : t('AppAiGenrateVue.buttons.generate') }}</a-button>
         </div>
       </a-form>
 
-      <a-divider v-if="preview">预览</a-divider>
+      <a-divider v-if="preview">{{ t('common.preview') }}</a-divider>
       <pre v-if="preview" class="preview">{{ JSON.stringify(preview, null, 2) }}</pre>
     </div>
     <!-- 选择目标文件夹弹窗 -->
     <DocTreeModal
       v-model:open="pickFolderOpen"
-      title="选择存放文件夹"
-      okText="选择此处"
+      :title="t('AppAiGenrateVue.buttons.selectFolder')"
+      :okText="t('common.confirm')"
       :confirmLoading="loading"
       @confirm="handlePickFolderConfirm"
     />
@@ -216,6 +216,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   FolderOutlined,
   BulbOutlined,
@@ -242,6 +243,36 @@ import { useDocStore } from '@/stores/docStore'
 import DocTreeModal from './DocTreeModal.vue'
 import type { DocNode } from '@/stores/docStore'
 
+const { t } = useI18n()
+
+// 国际化预设列表
+const localizedProviderPresets = computed(() => {
+  return aiStore.providerPresets.map(preset => ({
+    ...preset,
+    name: getPresetName(preset.key)
+  }))
+})
+
+// 获取预设名称的国际化文本
+const getPresetName = (key: string): string => {
+  const presetMap: Record<string, string> = {
+    'manual-ollama-custom': t('aiStoreTs.presets.manualOllamaCustom'),
+    'ollama-qwen2-7b-instruct': t('aiStoreTs.presets.ollamaQwen2'),
+    'ollama-llama3-8b-instruct': t('aiStoreTs.presets.ollamaLlama3'),
+    'ollama-mistral-7b-instruct': t('aiStoreTs.presets.ollamaMistral'),
+    'ollama-gemma3-4b': t('aiStoreTs.presets.ollamaGemma3'),
+    'manual-openai-custom': t('aiStoreTs.presets.manualOpenaiCustom'),
+    'openai-gpt-4o-mini': t('aiStoreTs.presets.openaiGpt4oMini'),
+    'openai-gpt-3-5-turbo': t('aiStoreTs.presets.openaiGpt35Turbo'),
+    'deepseek-chat': t('aiStoreTs.presets.deepseekChat'),
+    'deepseek-reasoner': t('aiStoreTs.presets.deepseekReasoner'),
+    'gemini-2-0-flash': t('aiStoreTs.presets.gemini20Flash'),
+    'gemini-2-0-flash-exp': t('aiStoreTs.presets.gemini20FlashExp'),
+    'gemini-1-5-flash': t('aiStoreTs.presets.gemini15Flash')
+  }
+  return presetMap[key] || key
+}
+
 const loading = ref(false)
 const errorMsg = ref<string | null>(null)
 const errorDetails = ref<string | null>(null)
@@ -256,14 +287,14 @@ const pickFolderOpen = ref(false)
 const selectedPresetKey = ref<string>('')
 const formRef = ref<FormInstance>()
 
-// 根据key查找文件夹名称的计算属性
-const selectedFolderName = computed(() => {
-  if (!form.docParentKey) return ''
+  // 根据key查找文件夹名称的计算属性
+  const selectedFolderName = computed(() => {
+    if (!form.docParentKey) return ''
 
-  // 如果是根节点，直接返回根节点名称
-  if (form.docParentKey === docStore.docTree.key) {
-    return docStore.docTree.title || '我的文档'
-  }
+    // 如果是根节点，直接返回根节点名称
+    if (form.docParentKey === docStore.docTree.key) {
+      return docStore.docTree.title || t('AppDocGridVue.titles.documents')
+    }
 
   const findNodeName = (nodes: DocNode[]): string => {
     for (const node of nodes) {
@@ -306,7 +337,7 @@ onMounted(async () => {
   await aiStore.initialize()
 
   // 设置默认预设选择
-  const defaultPreset = aiStore.providerPresets.find(preset =>
+  const defaultPreset = localizedProviderPresets.value.find((preset: { type: string; model: string; baseUrl: string }) =>
     preset.type === form.provider.type &&
     preset.model === form.provider.model &&
     preset.baseUrl === form.provider.baseUrl
@@ -342,36 +373,36 @@ const validateForm = (): { isValid: boolean; errors: string[] } => {
 
   // 验证目标文件夹
   if (!form.docParentKey?.trim()) {
-    errors.push('请选择目标文件夹')
+    errors.push(t('AppAiGenrateVue.messages.validationErrors.selectTargetFolder'))
   }
 
   // 验证模型名称
   if (!form.provider.model?.trim()) {
-    errors.push('请输入模型名称')
+    errors.push(t('AppAiGenrateVue.messages.validationErrors.enterModel'))
   }
 
   // 验证 Base URL
   if (!form.provider.baseUrl?.trim()) {
-    errors.push('请输入 Base URL')
+    errors.push(t('AppAiGenrateVue.messages.validationErrors.enterBaseUrl'))
   }
 
   // 当类型为云端时，验证 API Key
   if (form.provider.type === 'openai' && !form.provider.apiKey?.trim()) {
-    errors.push('请输入 API Key')
+    errors.push(t('AppAiGenrateVue.messages.validationErrors.enterApiKey'))
   }
 
   // 根据输入类型验证对应字段
   if (form.inputType === 'theme') {
     if (!form.theme?.trim()) {
-      errors.push('请输入主题')
+      errors.push(t('AppAiGenrateVue.messages.validationErrors.enterTheme'))
     }
   } else if (form.inputType === 'text') {
     if (!form.text?.trim()) {
-      errors.push('请输入文本内容')
+      errors.push(t('AppAiGenrateVue.messages.validationErrors.enterText'))
     }
   } else if (form.inputType === 'file') {
     if (!selectedFile) {
-      errors.push('请选择文件')
+      errors.push(t('AppAiGenrateVue.messages.validationErrors.selectFile'))
     }
   }
 
@@ -401,9 +432,9 @@ const handleGenerate = async () => {
     type ApiResponse = { success?: boolean; data?: GenerateMoteResponseData }
     let data: ApiResponse | undefined
     if (form.inputType === 'file') {
-      if (!selectedFile) {
-        throw new Error('请先选择文件')
-      }
+          if (!selectedFile) {
+      throw new Error(t('AppAiGenrateVue.messages.validationErrors.selectFile'))
+    }
       const fd = new FormData()
       fd.append('document', selectedFile)
       fd.append('docParentKey', form.docParentKey)
@@ -422,7 +453,7 @@ const handleGenerate = async () => {
     aiStore.setPreview(payload ?? null)
   } catch (errUnknown) {
     const err = errUnknown as { response?: { data?: { error?: { code?: string; message?: string; details?: string } } }; message?: string }
-    errorMsg.value = err?.response?.data?.error?.message || err?.message || '生成失败'
+    errorMsg.value = err?.response?.data?.error?.message || err?.message || t('AppAiGenrateVue.messages.generationFailed')
     errorDetails.value = err?.response?.data?.error?.details || null
     errorCode.value = err?.response?.data?.error?.code || null
   } finally {
@@ -435,14 +466,14 @@ const handleImport = async () => {
   try {
     const resp = await importMoteDataJson(preview.value.docParentKey, preview.value.moteTree, preview.value.title)
     if (resp?.success) {
-      message.success('导入成功')
+      message.success(t('AppAiGenrateVue.messages.importSuccess'))
       aiStore.clearPreview()
       await docStore.fetchDocTree()
     } else {
-      message.error(resp?.error?.message || '导入失败')
+      message.error(resp?.error?.message || t('AppAiGenrateVue.messages.importFailed'))
     }
   } catch {
-    message.error('导入失败')
+    message.error(t('AppAiGenrateVue.messages.importFailed'))
   }
 }
 

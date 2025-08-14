@@ -15,11 +15,16 @@
 -->
 <template>
   <div class="not-found-container">
+    <!-- 语言切换按钮 -->
+    <div class="language-switch-container">
+      <LanguageSwitch />
+    </div>
+
     <div class="not-found-content">
       <!-- 头部区域：错误码和标题 -->
       <div class="not-found-header">
         <h1>404</h1>
-        <p class="subtitle">页面未找到</p>
+        <p class="subtitle">{{ t('NotFoundPageVue.pageTitle') }}</p>
       </div>
 
       <!-- 错误描述区域：详细说明和图标 -->
@@ -33,8 +38,8 @@
               <line x1="9" y1="9" x2="15" y2="15" />
             </svg>
           </div>
-          <h3>页面不存在</h3>
-          <p>您访问的页面可能已被删除、移动或从未存在过</p>
+                      <h3>{{ t('NotFoundPageVue.errorTitle') }}</h3>
+            <p>{{ t('NotFoundPageVue.errorDescription') }}</p>
         </div>
       </div>
 
@@ -43,18 +48,18 @@
         <div class="action-buttons">
           <!-- 返回首页按钮 -->
           <a-button type="primary" size="large" class="action-button home-btn" @click="goToHome">
-            返回首页
+            {{ t('NotFoundPageVue.backHomeButton') }}
           </a-button>
           <!-- 返回上页按钮 -->
           <a-button size="large" class="action-button back-btn" @click="goBack">
-            返回上页
+            {{ t('NotFoundPageVue.goBackButton') }}
           </a-button>
         </div>
       </div>
 
       <!-- 底部信息：版权声明 -->
       <div class="not-found-footer">
-        <p>© 2024 Motes. 让思维更有条理，让知识更有价值。</p>
+        <p>{{ t('app.copyright') }}</p>
       </div>
     </div>
   </div>
@@ -69,9 +74,12 @@
  */
 
 import { useRouter } from 'vue-router'
+import LanguageSwitch from '../components/LanguageSwitch.vue'
+import { useI18n } from 'vue-i18n'
 
 // ==================== 路由管理 ====================
 const router = useRouter()
+const { t } = useI18n()
 
 // ==================== 导航方法 ====================
 /**
@@ -102,6 +110,14 @@ const goBack = () => {
   justify-content: center;
   background-color: #f5f5f5;
   padding: 20px;
+  position: relative;
+}
+
+.language-switch-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
 }
 
 .not-found-content {

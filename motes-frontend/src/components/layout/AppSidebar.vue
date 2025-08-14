@@ -30,18 +30,18 @@
       >
         <a-menu-item key="ai">
           <RobotOutlined />
-          <span class="menu-title">AI 生成</span>
+          <span class="menu-title">{{ t('AppSidebarVue.menuItems.ai') }}</span>
         </a-menu-item>
         <a-sub-menu key="documents">
           <template #title>
             <span @click.stop="handleDocumentsClick">
               <folder-outlined />
-              <span class="menu-title">我的文档</span>
+              <span class="menu-title">{{ t('AppSidebarVue.menuItems.documents') }}</span>
             </span>
           </template>
 
           <div class="search-container">
-            <a-input-search v-model:value="searchValue" class="search-input" placeholder="搜索" />
+            <a-input-search v-model:value="searchValue" class="search-input" :placeholder="t('AppSidebarVue.search')" />
             <a-dropdown :trigger="['click', 'contextmenu']">
               <a-button type="text" class="add-button">
                 <PlusOutlined />
@@ -50,38 +50,38 @@
                 <a-menu @click="handleAddMenuClick">
                   <a-menu-item key="new-mote">
                     <FileMarkdownOutlined />
-                    新建文档
+                    {{ t('AppSidebarVue.addMenu.newMote') }}
                   </a-menu-item>
                   <a-menu-item key="new-folder">
                     <FolderOpenOutlined />
-                    新建文件夹
+                    {{ t('AppSidebarVue.addMenu.newFolder') }}
                   </a-menu-item>
                   <a-sub-menu key="import">
                     <template #title>
                       <ImportOutlined />
-                      导入文档
+                      {{ t('AppSidebarVue.addMenu.import') }}
                     </template>
                     <a-menu-item key="import-json">
                       <FileTextOutlined />
-                      JSON格式
+                      {{ t('AppSidebarVue.addMenu.importJson') }}
                     </a-menu-item>
                     <a-menu-item key="import-markdown">
                       <FileMarkdownOutlined />
-                      Markdown格式
+                      {{ t('AppSidebarVue.addMenu.importMarkdown') }}
                     </a-menu-item>
                   </a-sub-menu>
                   <a-sub-menu v-if="isMoteRoute" key="export">
                     <template #title>
                       <ExportOutlined />
-                      导出文档
+                      {{ t('AppSidebarVue.addMenu.export') }}
                     </template>
                     <a-menu-item key="export-json">
                       <FileTextOutlined />
-                      JSON格式
+                      {{ t('AppSidebarVue.addMenu.exportJson') }}
                     </a-menu-item>
                     <a-menu-item key="export-markdown">
                       <FileMarkdownOutlined />
-                      Markdown格式
+                      {{ t('AppSidebarVue.addMenu.exportMarkdown') }}
                     </a-menu-item>
                   </a-sub-menu>
                 </a-menu>
@@ -131,10 +131,10 @@
           </a-tree>
 
         </a-sub-menu>
-        <a-menu-item key="trash">
-          <delete-outlined />
-          <span class="menu-title">回收站</span>
-        </a-menu-item>
+                 <a-menu-item key="trash">
+           <delete-outlined />
+           <span class="menu-title">{{ t('AppHeaderVue.breadcrumb.trash') }}</span>
+         </a-menu-item>
       </a-menu>
     </div>
 
@@ -144,8 +144,8 @@
   <!-- 选择目标文件夹（用于移动） -->
   <DocTreeModal
     v-model:open="moveModalOpen"
-    title="选择目标文件夹"
-    okText="移动到此处"
+    :title="t('AppDocGridVue.moveModal.title')"
+    :okText="t('AppDocGridVue.moveModal.okText')"
     :confirmLoading="docStore.isLoading"
     :excludeSubtreeRootKey="movingNodeKey || undefined"
     @confirm="handleMoveConfirm"
@@ -154,7 +154,7 @@
   <!-- 重命名对话框 -->
   <a-modal
     v-model:open="renameModalVisible"
-    :title="renameModalTitle"
+    :title="t('AppDocGridVue.renameModal.title')"
     @ok="handleRenameConfirm"
     @cancel="handleRenameCancel"
     :confirm-loading="docStore.isLoading"
@@ -163,7 +163,7 @@
   >
     <a-input
       v-model:value="renameModalValue"
-      placeholder="请输入新名称"
+      :placeholder="t('AppDocGridVue.renameModal.placeholder')"
       @keyup.enter="handleRenameConfirm"
       ref="renameInputRef"
     />
@@ -181,6 +181,7 @@
 
 <script setup lang="ts">
 // ==================== 导入 ====================
+import { useI18n } from 'vue-i18n'
 import {
   FolderOutlined,
   DeleteOutlined,
@@ -202,6 +203,8 @@ import { useMoteStore } from '@/stores/moteStore'
 import { message } from 'ant-design-vue'
 import DocContextMenu from './DocContextMenu.vue'
 import DocTreeModal from './DocTreeModal.vue'
+
+const { t } = useI18n()
 
 /**
  * 组件属性接口
@@ -388,22 +391,22 @@ async function onContextMenuClick(treeKey: string, menuKey: string | number, tar
         break
     }
   } catch {
-    message.error('操作失败')
+    message.error(t('errors.operationError'))
   }
 }
 
 async function handleCreateNode(type: 'folder' | 'mote', parentKey: string) {
-  const title = type === 'folder' ? '新建文件夹' : '新建文档'
+  const title = type === 'folder' ? t('AppSidebarVue.addMenu.newFolder') : t('AppSidebarVue.addMenu.newMote')
 
   try {
     const result = await createNode(title, type, parentKey)
     if (result.success) {
-      message.success(`${type === 'folder' ? '文件夹' : '文档'}创建成功`)
+      message.success(t('AppSidebarVue.messages.createSuccess'))
     } else {
-      message.error(result.error?.message || '创建失败')
+      message.error(result.error?.message || t('AppSidebarVue.messages.createFailed'))
     }
   } catch {
-    message.error('创建失败')
+    message.error(t('AppSidebarVue.messages.createFailed'))
   }
 }
 
@@ -412,12 +415,12 @@ async function handleMoveConfirm(folderKey: string) {
   try {
     const result = await moveNode(movingNodeKey.value, folderKey)
     if (result.success) {
-      message.success('移动成功')
+      message.success(t('AppDocGridVue.messages.moveSuccess'))
     } else {
-      message.error(result.error?.message || '移动失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.moveFailed'))
     }
   } catch {
-    message.error('移动失败')
+    message.error(t('AppDocGridVue.messages.moveFailed'))
   } finally {
     moveModalOpen.value = false
     movingNodeKey.value = null
@@ -428,18 +431,18 @@ async function handleDuplicateNode(node: DocNode) {
   try {
     const result = await duplicateNode(node.key)
     if (result.success) {
-      message.success('副本创建成功')
+      message.success(t('AppDocGridVue.messages.duplicateSuccess'))
     } else {
-      message.error(result.error?.message || '创建副本失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.duplicateFailed'))
     }
   } catch {
-    message.error('创建副本失败')
+    message.error(t('AppDocGridVue.messages.duplicateFailed'))
   }
 }
 
 function showRenameModal(node: DocNode) {
   renameModalTarget.value = node
-  renameModalTitle.value = `重命名${node.type === 'folder' ? '文件夹' : '文档'}`
+  renameModalTitle.value = t('AppDocGridVue.renameModal.title')
   renameModalValue.value = node.title
   renameModalVisible.value = true
   // 在下一个tick中聚焦输入框
@@ -465,16 +468,16 @@ async function handleRenameConfirm() {
   try {
     const result = await renameNode(renameModalTarget.value.key, newTitle)
     if (result.success) {
-      message.success('重命名成功')
+      message.success(t('AppDocGridVue.messages.renameSuccess'))
       renameModalVisible.value = false
       // 清空状态
       renameModalTarget.value = null
       renameModalValue.value = ''
     } else {
-      message.error(result.error?.message || '重命名失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.renameFailed'))
     }
   } catch {
-    message.error('重命名失败')
+    message.error(t('AppDocGridVue.messages.renameFailed'))
   }
 }
 
@@ -505,7 +508,7 @@ async function handleFileChange(event: Event) {
       await fetchDocTree()
     }
   } catch {
-    message.error('文件导入失败，请检查文件格式')
+    message.error(t('AppSidebarVue.messages.importFailed'))
   } finally {
     // 清空文件输入框
     if (target) {
@@ -518,21 +521,21 @@ async function handleDeleteNode(key: string) {
   try {
     const result = await deleteNode(key)
     if (result.success) {
-      message.success('删除成功')
+      message.success(t('AppDocGridVue.messages.deleteSuccess'))
       // 从选中状态中移除
       selectedKeys.value = selectedKeys.value.filter(k => k !== key)
     } else {
-      message.error(result.error?.message || '删除失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.deleteFailed'))
     }
   } catch {
-    message.error('删除失败')
+    message.error(t('AppDocGridVue.messages.deleteFailed'))
   }
 }
 
 async function handleAddMenuClick(e: { key: string }) {
   // 检查文档树是否已加载
   if (docStore.isLoading) {
-    message.warning('文档树正在加载中，请稍后再试')
+    message.warning(t('AppSidebarVue.messages.loading'))
     return
   }
 
@@ -541,11 +544,11 @@ async function handleAddMenuClick(e: { key: string }) {
     try {
       const result = await fetchDocTree()
       if (!result.success) {
-        message.error('无法获取文档树，请刷新页面重试')
+        message.error(t('AppSidebarVue.messages.fetchDocTreeFailed'))
         return
       }
     } catch {
-      message.error('无法获取文档树，请刷新页面重试')
+      message.error(t('AppSidebarVue.messages.fetchDocTreeFailed'))
       return
     }
   }
@@ -564,12 +567,12 @@ async function handleAddMenuClick(e: { key: string }) {
         } else if (e.key === 'new-folder') {
           handleCreateNode('folder', docStore.docTree.key)
         }
-      } else {
-        message.error('无法获取根节点，请刷新页面重试')
+              } else {
+          message.error(t('AppSidebarVue.messages.fetchRootFailed'))
+        }
+    } catch {
+        message.error(t('AppSidebarVue.messages.fetchRootFailed'))
       }
-  } catch {
-      message.error('无法获取根节点，请刷新页面重试')
-    }
     return
   }
 
@@ -738,18 +741,18 @@ async function onDrop(info: AntTreeNodeDropEvent) {
       const position = info.dropPosition === -1 ? 0 : undefined
       const result = await moveNode(String(dragKey), String(dropKey), position)
 
-      if (!result.success) {
-        message.error(result.error?.message || '移动失败')
-        // 回滚本地更改
-        docStore.updateLocalDocTree(originalData.children || [])
-      } else {
-        message.success('移动成功')
-      }
-    } catch {
-      message.error('移动失败，网络错误')
-      // 回滚本地更改
-      docStore.updateLocalDocTree(originalData.children || [])
-    }
+             if (!result.success) {
+         message.error(result.error?.message || t('AppDocGridVue.messages.moveFailed'))
+         // 回滚本地更改
+         docStore.updateLocalDocTree(originalData.children || [])
+       } else {
+         message.success(t('AppDocGridVue.messages.moveSuccess'))
+       }
+     } catch {
+       message.error(t('errors.networkError'))
+       // 回滚本地更改
+       docStore.updateLocalDocTree(originalData.children || [])
+     }
   }, 300) // 300ms防抖延迟
 
   emit('drop', info)

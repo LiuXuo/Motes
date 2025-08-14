@@ -1,5 +1,21 @@
 # Motes 后端 API 服务
 
+<p align="center">
+  <a href="../README.md">
+    <img src="https://img.shields.io/badge/主-README-blue?style=for-the-badge&logo=markdown" alt="主 README">
+  </a>
+  <a href="../motes-frontend/README.md">
+    <img src="https://img.shields.io/badge/前端-README-blue?style=for-the-badge&logo=markdown" alt="前端 README">
+  </a>
+  <a href="../API_DOCUMENTATION.md">
+    <img src="https://img.shields.io/badge/API-DOCUMENTATION-blue?style=for-the-badge&logo=markdown" alt="API DOCUMENTATION">
+  <br />
+  <a href="./README_en.md">
+    <img src="https://img.shields.io/badge/English-README-green?style=for-the-badge&logo=markdown" alt="English README">
+  </a>
+  </a>
+</p>
+
 ## 📖 项目简介
 
 Motes 后端 API 服务是脑图笔记Web应用的核心服务层，提供 RESTful API 接口，支持用户认证、文档管理、脑图笔记数据存储和AI生成等功能，为前端应用提供强大的数据支撑。
@@ -387,8 +403,6 @@ npx tsc --noEmit
 
 ## 🔗 相关链接
 
-- [本项目前端文档](../motes-frontend/README.md)
-- [本项目 API 文档](../API_DOCUMENTATION.md)
 - [Express.js 文档](https://expressjs.com/)
 - [Mongoose 文档](https://mongoosejs.com/)
 - [MongoDB 文档](https://docs.mongodb.com/)

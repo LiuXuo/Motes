@@ -16,10 +16,15 @@
 -->
 <template>
   <div class="home-container">
+    <!-- 语言切换按钮 -->
+    <div class="language-switch-container">
+      <LanguageSwitch />
+    </div>
+
     <div class="home-content">
       <!-- 头部区域：应用标题和动态副标题 -->
       <div class="home-header">
-        <h1>Motes</h1>
+        <h1>{{ t('app.name') }}</h1>
         <!-- 动态切换的副标题，展示不同功能特性 -->
         <a-segmented
           v-model:value="currentSubtitle"
@@ -27,13 +32,12 @@
           class="subtitle-segmented"
           size="large"
         />
-        <p class="slogan">Mind Map + Outline Notes</p>
       </div>
 
       <!-- 设计理念区域：应用核心价值说明 -->
       <div class="concept-section">
         <p class="concept-text">
-          Motes 致力于将碎片化的知识微粒连接起来，通过思维导图的视觉化展示和大纲笔记的结构化组织，帮助用户构建完整的知识体系。
+          {{ t('app.concept') }}
         </p>
       </div>
 
@@ -46,8 +50,8 @@
               <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
           </div>
-          <h3>AI 生成</h3>
-          <p>基于主题、文本或文件生成脑图笔记，支持多模型和节点扩展</p>
+          <h3>{{ t('features.aiGenerate.title') }}</h3>
+          <p>{{ t('features.aiGenerate.description') }}</p>
         </div>
 
         <!-- 思维导图功能卡片 -->
@@ -58,8 +62,8 @@
               <path d="M21 12c-1 0-2.4-.4-3.5-1.5S16 8 16 7s.4-2.4 1.5-3.5S20 2 21 2s2.4.4 3.5 1.5S26 6 26 7s-.4 2.4-1.5 3.5S22 12 21 12z" />
             </svg>
           </div>
-          <h3>思维导图</h3>
-          <p>基于 AntV X6 图形引擎，提供流畅的思维导图编辑体验</p>
+          <h3>{{ t('features.mindMap.title') }}</h3>
+          <p>{{ t('features.mindMap.description') }}</p>
         </div>
 
         <!-- 大纲笔记功能卡片 -->
@@ -73,8 +77,8 @@
               <polyline points="10,9 9,9 8,9" />
             </svg>
           </div>
-          <h3>大纲笔记</h3>
-          <p>结构化的笔记大纲，支持文本编辑和滚动同步</p>
+          <h3>{{ t('features.outlineNote.title') }}</h3>
+          <p>{{ t('features.outlineNote.description') }}</p>
         </div>
       </div>
 
@@ -84,26 +88,24 @@
           <!-- 未登录状态：显示登录和注册按钮 -->
           <template v-if="!userStore.isLoggedIn">
             <a-button type="primary" size="large" class="action-button login-btn" @click="goToLogin">
-              立即登录
+              {{ t('app.loginNow') }}
             </a-button>
             <a-button size="large" class="action-button register-btn" @click="goToRegister">
-              免费注册
+              {{ t('app.freeRegister') }}
             </a-button>
           </template>
           <!-- 已登录状态：显示进入应用按钮 -->
           <template v-else>
             <a-button type="primary" size="large" class="action-button enter-btn" @click="enterMotes">
-              进入Motes
+              {{ t('app.enterApp') }}
             </a-button>
           </template>
         </div>
-        <!-- 演示模式提示 -->
-        <p class="demo-hint" v-if="!userStore.isLoggedIn">演示模式：无需真实注册即可体验</p>
       </div>
 
       <!-- 底部信息：版权声明 -->
       <div class="home-footer">
-        <p>© 2025 Motes. Connect your motes.</p>
+        <p>{{ t('app.copyright') }}</p>
       </div>
     </div>
   </div>
@@ -119,11 +121,14 @@
 
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitch from '../components/LanguageSwitch.vue'
 
 // ==================== 路由和状态管理 ====================
 const router = useRouter()
 const userStore = useUserStore()
+const { t } = useI18n()
 
 // ==================== 副标题配置 ====================
 /**
@@ -133,10 +138,10 @@ const userStore = useUserStore()
  *
  * @type {Array<{label: string, value: string}>}
  */
-const subtitleOptions = [
-  { label: '思维导图', value: 'mindmap' },
-  { label: '大纲笔记', value: 'outline' },
-]
+const subtitleOptions = computed(() => [
+  { label: t('HomePageVue.subtitleOptions.mindmap'), value: 'mindmap' },
+  { label: t('HomePageVue.subtitleOptions.outline'), value: 'outline' },
+])
 
 /**
  * 当前选中的副标题
@@ -159,9 +164,9 @@ let subtitleTimer: number | null = null
  */
 const startAutoSwitch = () => {
   subtitleTimer = setInterval(() => {
-    const currentIndex = subtitleOptions.findIndex(option => option.value === currentSubtitle.value)
-    const nextIndex = (currentIndex + 1) % subtitleOptions.length
-    currentSubtitle.value = subtitleOptions[nextIndex].value
+    const currentIndex = subtitleOptions.value.findIndex(option => option.value === currentSubtitle.value)
+    const nextIndex = (currentIndex + 1) % subtitleOptions.value.length
+    currentSubtitle.value = subtitleOptions.value[nextIndex].value
   }, 5000)
 }
 
@@ -230,6 +235,14 @@ const enterMotes = () => {
   justify-content: center;
   background-color: #f5f5f5;
   padding: 20px;
+  position: relative;
+}
+
+.language-switch-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
 }
 
 .home-content {

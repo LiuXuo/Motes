@@ -41,7 +41,7 @@
         />
         <!-- 节点ID显示 -->
         <div style="font-size: 12px; color: #999; text-align: left">
-          ID: {{ moteStore.selectedNodeId }}
+          {{ t('NodeCardVue.nodeId') }}: {{ moteStore.selectedNodeId }}
         </div>
       </div>
 
@@ -54,10 +54,10 @@
 
       <!-- 导航快捷键说明 -->
       <div class="shortcut-help">
-        <div>单击节点选中</div>
-        <div>点击选中节点编辑</div>
-        <div>点击空白处取消选中</div>
-        <div>方向键移动所选节点</div>
+        <div>{{ t('NodeCardVue.shortcuts.clickNode') }}</div>
+        <div>{{ t('NodeCardVue.shortcuts.clickToEdit') }}</div>
+        <div>{{ t('NodeCardVue.shortcuts.clickBlank') }}</div>
+        <div>{{ t('NodeCardVue.shortcuts.arrowKeys') }}</div>
       </div>
     </a-card>
   </transition>
@@ -65,8 +65,11 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useMoteStore } from '@/stores/moteStore'
 import NodeOperations from './NodeOperations.vue'
+
+const { t } = useI18n()
 
 // ==================== Props & Emits ====================
 /**

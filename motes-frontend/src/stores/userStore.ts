@@ -20,6 +20,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { loginUser, registerUser, logoutUser, refreshAccessToken } from '../services/userApi'
+import { message } from 'ant-design-vue'
 
 // ==================== 接口定义 ====================
 
@@ -115,10 +116,13 @@ export const useUserStore = defineStore('user', () => {
   /** 是否正在加载（登录/注册过程中） */
   const isLoading = ref(false)
 
+  /** 当前用户语言设置 */
+  const currentLanguage = ref<'zh-CN' | 'en-US'>('zh-CN')
+
   // ==================== 事件回调 ====================
 
   /** 登录成功后的回调函数 */
-  const onLoginSuccess = ref<(() => Promise<void>) | null>(null)
+  const onLoginSuccess = ref<((language?: 'zh-CN' | 'en-US') => Promise<void>) | null>(null)
 
   /** 登出时的回调函数 */
   const onLogout = ref<(() => void) | null>(null)
@@ -131,14 +135,14 @@ export const useUserStore = defineStore('user', () => {
    * 当用户登录成功后，会执行此回调函数。
    * 通常用于初始化其他 Store 的数据。
    *
-   * @param {() => Promise<void>} callback - 登录成功后的回调函数
+   * @param {(language?: 'zh-CN' | 'en-US') => Promise<void>} callback - 登录成功后的回调函数
    *
    * @example
-   * userStore.setLoginSuccessCallback(async () => {
-   *   await docStore.fetchDocTree()
+   * userStore.setLoginSuccessCallback(async (language) => {
+   *   await docStore.fetchDocTree(language)
    * })
    */
-  const setLoginSuccessCallback = (callback: () => Promise<void>) => {
+  const setLoginSuccessCallback = (callback: (language?: 'zh-CN' | 'en-US') => Promise<void>) => {
     onLoginSuccess.value = callback
   }
 
@@ -167,6 +171,7 @@ export const useUserStore = defineStore('user', () => {
    *
    * 在应用启动时检查本地存储中的认证信息，
    * 如果存在有效的 token 和用户数据，则恢复登录状态。
+   * 同时初始化语言设置。
    *
    * @returns {Promise<void>} 初始化完成
    *
@@ -176,6 +181,9 @@ export const useUserStore = defineStore('user', () => {
    * @throws {Error} 当解析用户数据失败时
    */
   const initializeAuth = async () => {
+    // 初始化语言设置
+    initializeLanguage()
+
     const token = localStorage.getItem('accessToken')
     const userData = localStorage.getItem('userData')
 
@@ -185,10 +193,10 @@ export const useUserStore = defineStore('user', () => {
         isLoggedIn.value = true
         // 初始化时也获取文档树
         if (onLoginSuccess.value) {
-          await onLoginSuccess.value()
+          await onLoginSuccess.value(currentLanguage.value)
         }
-      } catch (error) {
-        console.error('解析用户数据失败:', error)
+      } catch {
+        message.error('解析用户数据失败:')
         clearAuth()
       }
     } else {
@@ -239,7 +247,7 @@ export const useUserStore = defineStore('user', () => {
 
         // 登录成功后获取文档树
         if (onLoginSuccess.value) {
-          await onLoginSuccess.value()
+          await onLoginSuccess.value(currentLanguage.value)
         }
 
         return { success: true, data: data.data }
@@ -298,7 +306,7 @@ export const useUserStore = defineStore('user', () => {
 
         // 注册成功后获取文档树
         if (onLoginSuccess.value) {
-          await onLoginSuccess.value()
+          await onLoginSuccess.value(currentLanguage.value)
         }
 
         return { success: true, data: data.data }
@@ -334,8 +342,8 @@ export const useUserStore = defineStore('user', () => {
     try {
       // 调用后端登出接口
       await logoutUser()
-    } catch (error) {
-      console.error('登出请求失败:', error)
+    } catch {
+      message.error('登出请求失败:')
     } finally {
       clearAuth()
     }
@@ -436,10 +444,51 @@ export const useUserStore = defineStore('user', () => {
     return !!getAuthToken() && isLoggedIn.value
   }
 
+  // ==================== 语言管理 ====================
+
+  /**
+   * 初始化语言设置
+   *
+   * 检查本地存储中的语言设置，如果没有则检测浏览器语言，
+   * 默认使用中文，并将设置保存到本地存储。
+   *
+   * @example
+   * userStore.initializeLanguage()
+   */
+  const initializeLanguage = () => {
+    const savedLanguage = localStorage.getItem('userLanguage')
+
+    if (savedLanguage && (savedLanguage === 'zh-CN' || savedLanguage === 'en-US')) {
+      currentLanguage.value = savedLanguage
+    } else {
+      // 检测浏览器语言
+      const browserLanguage = navigator.language || navigator.languages?.[0] || 'zh-CN'
+      const detectedLanguage = browserLanguage.startsWith('zh') ? 'zh-CN' : 'en-US'
+      currentLanguage.value = detectedLanguage
+      localStorage.setItem('userLanguage', detectedLanguage)
+    }
+  }
+
+  /**
+   * 设置用户语言
+   *
+   * 更新当前语言设置并保存到本地存储。
+   *
+   * @param {'zh-CN' | 'en-US'} language - 要设置的语言代码
+   *
+   * @example
+   * userStore.setLanguage('en-US')
+   */
+  const setLanguage = (language: 'zh-CN' | 'en-US') => {
+    currentLanguage.value = language
+    localStorage.setItem('userLanguage', language)
+  }
+
   return {
     currentUser,
     isLoggedIn,
     isLoading,
+    currentLanguage,
     login,
     register,
     logout,
@@ -448,6 +497,7 @@ export const useUserStore = defineStore('user', () => {
     getAuthToken,
     isAuthenticated,
     initializeAuth,
+    setLanguage,
     setLoginSuccessCallback,
     setLogoutCallback,
   }

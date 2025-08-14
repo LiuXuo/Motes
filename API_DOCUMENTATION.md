@@ -1,5 +1,21 @@
 # Motes API 文档
 
+<p align="center">
+  <a href="./README.md">
+    <img src="https://img.shields.io/badge/主-README-blue?style=for-the-badge&logo=markdown" alt="主 README">
+  <a href="./motes-frontend/README.md">
+    <img src="https://img.shields.io/badge/前端-README-blue?style=for-the-badge&logo=markdown" alt="前端 README">
+  </a>
+  <a href="./motes-backend/README.md">
+    <img src="https://img.shields.io/badge/后端-README-blue?style=for-the-badge&logo=markdown" alt="后端 README">
+  </a>
+  <br />
+  <a href="./API_DOCUMENTATION_en.md">
+    <img src="https://img.shields.io/badge/English-API DOCUMENTATION-green?style=for-the-badge&logo=markdown" alt="English API DOCUMENTATION">
+  </a>
+  </a>
+</p>
+
 ## 概述
 
 Motes 是一个思维导图/大纲笔记应用，提供用户管理、文档管理和脑图笔记编辑功能。本文档描述了后端API接口规范。
@@ -772,6 +788,7 @@ Authorization: Bearer <token>
     }
   }
 }
+```
 
 **错误响应**:
 ```json

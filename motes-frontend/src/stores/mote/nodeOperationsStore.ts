@@ -18,6 +18,7 @@
 
 import { defineStore } from 'pinia'
 import { generateId } from '@/utils'
+import { useUserStore } from '../userStore'
 
 /**
  * 脑图节点接口
@@ -40,6 +41,24 @@ interface MoteNode {
 }
 
 export const useNodeOperationsStore = defineStore('nodeOperationsStore', () => {
+  // ==================== 工具函数 ====================
+
+  /**
+   * 根据当前语言获取默认节点文本
+   *
+   * 根据用户的语言设置返回相应的默认文本内容。
+   *
+   * @returns {string} 默认文本内容
+   *
+   * @example
+   * const defaultText = getDefaultNodeText()
+   * console.log(defaultText) // '请输入内容' 或 'Please enter content'
+   */
+  const getDefaultNodeText = (): string => {
+    const userStore = useUserStore()
+    return userStore.currentLanguage === 'zh-CN' ? '请输入内容' : 'Please enter content'
+  }
+
   // ==================== 节点操作工具 ====================
 
   /**
@@ -125,7 +144,7 @@ export const useNodeOperationsStore = defineStore('nodeOperationsStore', () => {
     const newNodeId = generateId()
     const newNode: MoteNode = {
       id: newNodeId,
-      text: '请输入内容',
+      text: getDefaultNodeText(),
       collapsed: false,
       parentId: parentId,
       children: [],
@@ -187,7 +206,7 @@ export const useNodeOperationsStore = defineStore('nodeOperationsStore', () => {
     const newNodeId = generateId()
     const newNode: MoteNode = {
       id: newNodeId,
-      text: '请输入内容',
+      text: getDefaultNodeText(),
       collapsed: false,
       parentId: parent.id,
       children: [],

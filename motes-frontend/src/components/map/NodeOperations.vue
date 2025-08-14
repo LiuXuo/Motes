@@ -56,8 +56,11 @@
 <script setup lang="ts">
 import { nextTick } from 'vue'
 import type { Component } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useMoteStore } from '@/stores/moteStore'
 import { useAiStore } from '@/stores/aiStore'
+
+const { t } = useI18n()
 
 // ==================== 类型定义 ====================
 /**
@@ -151,15 +154,15 @@ const aiStore = useAiStore()
 const basicOperations: NodeOperation[] = [
   {
     action: 'addChild',
-    title: '新增子节点(Enter)',
-    shortcut: 'Enter',
+    title: t('NodeOperationsVue.basicOperations.addChild.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.addChild.shortcut'),
     icon: PlusCircleOutlined,
     method: (nodeId: string, store: ReturnType<typeof useMoteStore>) => store.addChildNode(nodeId),
   },
   {
     action: 'addSibling',
-    title: '新增同级节点(Shift+Enter)',
-    shortcut: 'Shift+Enter',
+    title: t('NodeOperationsVue.basicOperations.addSibling.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.addSibling.shortcut'),
     icon: PlusSquareOutlined,
     disabled: (nodeId: string, store: ReturnType<typeof useMoteStore>) =>
       !store.canAddSibling(nodeId),
@@ -168,8 +171,8 @@ const basicOperations: NodeOperation[] = [
   },
   {
     action: 'delete',
-    title: '删除节点(Delete)',
-    shortcut: 'Delete',
+    title: t('NodeOperationsVue.basicOperations.delete.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.delete.shortcut'),
     icon: DeleteOutlined,
     disabled: (nodeId: string, store: ReturnType<typeof useMoteStore>) =>
       !store.canDeleteNode(nodeId),
@@ -177,8 +180,8 @@ const basicOperations: NodeOperation[] = [
   },
   {
     action: 'toggleCollapse',
-    title: '展开/折叠(Alt+.)',
-    shortcut: 'Alt+.',
+    title: t('NodeOperationsVue.basicOperations.toggleCollapse.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.toggleCollapse.shortcut'),
     icon: MenuUnfoldOutlined,
     disabled: (nodeId: string, store: ReturnType<typeof useMoteStore>) =>
       !store.hasChildren(nodeId),
@@ -187,8 +190,8 @@ const basicOperations: NodeOperation[] = [
   },
   {
     action: 'promote',
-    title: '升级节点(Ctrl+Left)',
-    shortcut: 'Ctrl+Left',
+    title: t('NodeOperationsVue.basicOperations.promote.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.promote.shortcut'),
     icon: LeftCircleOutlined,
     disabled: (nodeId: string, store: ReturnType<typeof useMoteStore>) =>
       !store.canProMoteNode(nodeId),
@@ -196,8 +199,8 @@ const basicOperations: NodeOperation[] = [
   },
   {
     action: 'demote',
-    title: '降级节点(Ctrl+Right)',
-    shortcut: 'Ctrl+Right',
+    title: t('NodeOperationsVue.basicOperations.demote.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.demote.shortcut'),
     icon: RightCircleOutlined,
     disabled: (nodeId: string, store: ReturnType<typeof useMoteStore>) =>
       !store.canDeMoteNode(nodeId),
@@ -205,16 +208,16 @@ const basicOperations: NodeOperation[] = [
   },
   {
     action: 'moveUp',
-    title: '上移节点(Ctrl+Up)',
-    shortcut: 'Ctrl+Up',
+    title: t('NodeOperationsVue.basicOperations.moveUp.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.moveUp.shortcut'),
     icon: UpCircleOutlined,
     disabled: (nodeId: string, store: ReturnType<typeof useMoteStore>) => !store.canMoveUp(nodeId),
     method: (nodeId: string, store: ReturnType<typeof useMoteStore>) => store.moveNodeUp(nodeId),
   },
   {
     action: 'moveDown',
-    title: '下移节点(Ctrl+Down)',
-    shortcut: 'Ctrl+Down',
+    title: t('NodeOperationsVue.basicOperations.moveDown.title'),
+    shortcut: t('NodeOperationsVue.basicOperations.moveDown.shortcut'),
     icon: DownCircleOutlined,
     disabled: (nodeId: string, store: ReturnType<typeof useMoteStore>) =>
       !store.canMoveDown(nodeId),
@@ -229,8 +232,8 @@ const basicOperations: NodeOperation[] = [
  */
 const aiExpandOperation: NodeOperation = {
   action: 'aiExpand',
-  title: 'AI生枝(Ctrl+E)',
-  shortcut: 'Ctrl+E',
+  title: t('NodeOperationsVue.aiExpand.title'),
+  shortcut: t('NodeOperationsVue.aiExpand.shortcut'),
   icon: BranchesOutlined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   disabled: (nodeId: string, _store: ReturnType<typeof useMoteStore>) =>

@@ -39,16 +39,18 @@
           type="primary"
         >
           <LoadingOutlined v-if="isSaving" />
-          <span v-else>{{ moteStore.isDirty ? '保存' : '已保存' }}</span>
+          <span v-else>{{ moteStore.isDirty ? t('AppHeaderVue.save') : t('AppHeaderVue.saved') }}</span>
         </a-button>
-        <a-segmented
-          v-model:value="viewMode"
-          :options="[
-            { label: '思维导图', value: 'map' },
-            { label: '大纲笔记', value: 'note' },
-          ]"
-        />
+                  <a-segmented
+            v-model:value="viewMode"
+            :options="[
+              { label: t('AppHeaderVue.viewMode.map'), value: 'map' },
+              { label: t('AppHeaderVue.viewMode.note'), value: 'note' },
+            ]"
+          />
       </div>
+      <!-- 语言切换按钮（非mote路由下显示） -->
+      <LanguageSwitch v-if="!isMoteRoute" />
       <!-- 用户头像和下拉菜单 -->
       <a-dropdown :trigger="['click']">
         <a-avatar :style="{ cursor: 'pointer' }" size="small">
@@ -58,7 +60,7 @@
           <a-menu>
             <a-menu-item key="logout" @click="handleLogout">
               <LogoutOutlined />
-              登出
+              {{ t('AppHeaderVue.logout') }}
             </a-menu-item>
           </a-menu>
         </template>
@@ -70,10 +72,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useDocStore, type DocNode } from '@/stores/docStore'
 import { useMoteStore } from '@/stores/moteStore'
 import { useUserStore } from '@/stores/userStore'
 import { message } from 'ant-design-vue'
+import LanguageSwitch from '../LanguageSwitch.vue'
 import {
   FolderOutlined,
   FolderOpenOutlined,
@@ -83,6 +87,8 @@ import {
   LogoutOutlined,
   RobotOutlined,
 } from '@ant-design/icons-vue'
+
+const { t } = useI18n()
 
 /**
  * 面包屑项接口
@@ -225,7 +231,7 @@ function generateBreadcrumb(): BreadcrumbItem[] {
     // 回收站作为独立顶级目录
     items.push({
       key: 'trash',
-      title: '回收站',
+      title: t('AppHeaderVue.breadcrumb.trash'),
       path: '/trash',
       type: 'trash',
     })
@@ -233,7 +239,7 @@ function generateBreadcrumb(): BreadcrumbItem[] {
     // AI 生成作为独立顶级目录
     items.push({
       key: 'ai',
-      title: 'AI 生成',
+      title: t('AppHeaderVue.breadcrumb.ai'),
       path: '/ai',
       type: 'ai',
     })
@@ -241,7 +247,7 @@ function generateBreadcrumb(): BreadcrumbItem[] {
     // 其他路径都从"我的文档"开始
     items.push({
       key: 'documents',
-      title: '我的文档',
+      title: t('AppHeaderVue.breadcrumb.documents'),
       path: '/documents',
       type: 'documents',
     })
@@ -349,13 +355,12 @@ async function handleSave() {
     const success = await moteStore.saveDocument()
 
     if (success) {
-      message.success('保存成功')
+      message.success(t('AppHeaderVue.messages.saveSuccess'))
     } else {
-      message.error('保存失败')
+      message.error(t('AppHeaderVue.messages.saveFailed'))
     }
-  } catch (error) {
-    console.error('保存错误:', error)
-    message.error('保存过程中发生错误')
+  } catch {
+    message.error(t('AppHeaderVue.messages.saveError'))
   } finally {
     isSaving.value = false
   }

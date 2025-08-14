@@ -39,9 +39,9 @@ export const initializeStores = async () => {
   const moteStore = useMoteStore()
 
   // 设置登录成功回调
-  userStore.setLoginSuccessCallback(async () => {
+  userStore.setLoginSuccessCallback(async (language) => {
     try {
-      await docStore.fetchDocTree()
+      await docStore.fetchDocTree(language)
     } catch (error) {
       console.error('初始化时获取文档树失败:', error)
     }

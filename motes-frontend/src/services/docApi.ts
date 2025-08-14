@@ -22,10 +22,11 @@ import api from './api'
  * 获取当前用户的完整文档树结构，包括所有文件夹和脑图笔记。
  * 文档树采用层级结构，支持无限嵌套。
  *
+ * @param {string} language - 用户语言偏好 ('zh-CN' | 'en-US')
  * @returns {Promise<ApiResponse>} 文档树数据响应
  *
  * @example
- * const response = await getDocTree()
+ * const response = await getDocTree('zh-CN')
  * if (response.success) {
  *   docStore.setDocTree(response.data)
  * }
@@ -33,8 +34,8 @@ import api from './api'
  * @throws {401} 当用户未登录时
  * @throws {500} 当服务器错误时
  */
-export const getDocTree = async () => {
-  const response = await api.get('/doc/tree')
+export const getDocTree = async (language: 'zh-CN' | 'en-US' = 'zh-CN') => {
+  const response = await api.get('/doc/tree', { params: { language } })
   return response.data
 }
 

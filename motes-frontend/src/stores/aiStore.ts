@@ -20,6 +20,7 @@ import type { GenerateMotePayload, GenerateMoteResponseData } from '@/services/a
 import { aiApi } from '@/services/aiApi'
 import { message } from 'ant-design-vue'
 import { useDocStore } from '@/stores/docStore'
+import { useUserStore } from '@/stores/userStore'
 import type { MoteNode } from './moteStore'
 
 /**
@@ -181,7 +182,7 @@ export const useAiStore = defineStore('aiStore', () => {
    * 初始化 AI Store
    *
    * 只在第一次调用时执行，确保文档树已加载，
-   * 并设置默认的文档父节点。
+   * 设置默认的文档父节点，并根据用户语言设置初始化输出语言。
    *
    * @returns {Promise<void>} 初始化完成
    *
@@ -194,6 +195,8 @@ export const useAiStore = defineStore('aiStore', () => {
     if (isInitialized.value) return
 
     const docStore = useDocStore()
+    const userStore = useUserStore()
+
     if (!docStore.isInitialized && !docStore.isLoading) {
       await docStore.fetchDocTree()
     }
@@ -201,6 +204,9 @@ export const useAiStore = defineStore('aiStore', () => {
     if (docStore.docTree.key) {
       form.docParentKey = docStore.docTree.key
     }
+
+    const language = userStore.currentLanguage === 'zh-CN' ? 'zh' : 'en'
+    form.options.language = language
 
     isInitialized.value = true
   }

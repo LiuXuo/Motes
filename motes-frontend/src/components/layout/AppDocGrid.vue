@@ -14,7 +14,7 @@
     <h1 class="doc-title">{{ getTitle() }}</h1>
     <div v-if="docStore.isLoading" class="loading-container">
       <LoadingOutlined style="font-size: 48px" />
-      <p>正在加载文档...</p>
+      <p>{{ t('AppDocGridVue.loading') }}</p>
     </div>
     <div v-else-if="displayDocuments.length > 0" class="doc-grid-container">
       <div
@@ -38,14 +38,14 @@
         </DocContextMenu>
       </div>
     </div>
-    <AEmpty v-else description="暂无内容" class="empty-container" />
+    <AEmpty v-else :description="t('AppDocGridVue.empty')" class="empty-container" />
   </div>
 
   <!-- 选择目标文件夹（用于移动） -->
   <DocTreeModal
     v-model:open="moveModalOpen"
-    title="选择目标文件夹"
-    okText="移动到此处"
+    :title="t('AppDocGridVue.moveModal.title')"
+    :okText="t('AppDocGridVue.moveModal.okText')"
     :confirmLoading="docStore.isLoading"
     :excludeSubtreeRootKey="movingNodeKey || undefined"
     @confirm="handleMoveConfirm"
@@ -54,7 +54,7 @@
   <!-- 重命名对话框 -->
   <a-modal
     v-model:open="renameModalVisible"
-    :title="renameModalTitle"
+    :title="t('AppDocGridVue.renameModal.title')"
     @ok="handleRenameConfirm"
     @cancel="handleRenameCancel"
     :confirm-loading="docStore.isLoading"
@@ -63,7 +63,7 @@
   >
     <a-input
       v-model:value="renameModalValue"
-      placeholder="请输入新名称"
+      :placeholder="t('AppDocGridVue.renameModal.placeholder')"
       @keyup.enter="handleRenameConfirm"
       ref="renameInputRef"
     />
@@ -71,6 +71,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import {
   FileMarkdownFilled,
   FolderFilled,
@@ -84,6 +85,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import DocContextMenu from './DocContextMenu.vue'
 import DocTreeModal from './DocTreeModal.vue'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -235,10 +238,10 @@ const displayDocuments = computed(() => {
 const getTitle = () => {
   switch (effectiveType.value) {
     case 'documents':
-      return '我的文档'
+      return t('AppDocGridVue.titles.documents')
     case 'folder':
       // 根据 folderId 查找文件夹名称
-      if (!effectiveFolderId.value) return '文件夹'
+      if (!effectiveFolderId.value) return t('AppDocGridVue.titles.folder')
       const findFolderName = (nodes: DocNode[]): string => {
         // 遍历所有节点
         for (const node of nodes) {
@@ -251,19 +254,19 @@ const getTitle = () => {
           if (node.children && node.children.length > 0) {
             // 递归查找子节点
             const found = findFolderName(node.children)
-            if (found && found !== '文件夹') {
+            if (found && found !== t('AppDocGridVue.titles.folder')) {
               return found
             }
           }
         }
 
-        return '文件夹'
+        return t('AppDocGridVue.titles.folder')
       }
       return findFolderName(docStore.docTree.children || [])
     case 'trash':
-      return '回收站'
+      return t('AppDocGridVue.titles.trash')
     default:
-      return '我的文档'
+      return t('AppDocGridVue.titles.documents')
   }
 }
 
@@ -293,18 +296,17 @@ const findNode = (nodes: DocNode[], key: string): DocNode | null => {
 
 // 创建节点
 const handleCreateNode = async (type: 'folder' | 'mote', parentKey: string) => {
-  const title = type === 'folder' ? '新建文件夹' : '新建文档'
+  const title = type === 'folder' ? t('AppSidebarVue.addMenu.newFolder') : t('AppSidebarVue.addMenu.newMote')
 
   try {
     const result = await docStore.createNode(title, type, parentKey)
     if (result.success) {
-      message.success(`${type === 'folder' ? '文件夹' : '文档'}创建成功`)
+      message.success(t('AppDocGridVue.messages.createSuccess'))
     } else {
-      message.error(result.error?.message || '创建失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.createFailed'))
     }
-  } catch (error) {
-    console.error('创建节点失败:', error)
-    message.error('创建失败')
+  } catch {
+    message.error(t('AppDocGridVue.messages.createFailed'))
   }
 }
 
@@ -313,20 +315,19 @@ const handleDuplicateNode = async (key: string) => {
   try {
     const result = await docStore.duplicateNode(key)
     if (result.success) {
-      message.success('副本创建成功')
+      message.success(t('AppDocGridVue.messages.duplicateSuccess'))
     } else {
-      message.error(result.error?.message || '创建副本失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.duplicateFailed'))
     }
-  } catch (error) {
-    console.error('创建副本失败:', error)
-    message.error('创建副本失败')
+  } catch {
+    message.error(t('AppDocGridVue.messages.duplicateFailed'))
   }
 }
 
 // 显示重命名对话框
 const showRenameModal = (node: DocNode) => {
   renameModalTarget.value = node
-  renameModalTitle.value = `重命名${node.type === 'folder' ? '文件夹' : '文档'}`
+  renameModalTitle.value = t('AppDocGridVue.renameModal.title')
   renameModalValue.value = node.title
   renameModalVisible.value = true
   // 在下一个tick中聚焦输入框
@@ -361,17 +362,16 @@ const handleRenameConfirm = async () => {
   try {
     const result = await docStore.renameNode(renameModalTarget.value.key, newTitle)
     if (result.success) {
-      message.success('重命名成功')
+      message.success(t('AppDocGridVue.messages.renameSuccess'))
       renameModalVisible.value = false
       // 清空状态
       renameModalTarget.value = null
       renameModalValue.value = ''
     } else {
-      message.error(result.error?.message || '重命名失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.renameFailed'))
     }
-  } catch (error) {
-    console.error('重命名失败:', error)
-    message.error('重命名失败')
+  } catch {
+    message.error(t('AppDocGridVue.messages.renameFailed'))
   }
 }
 
@@ -387,13 +387,12 @@ const handleDeleteNode = async (key: string) => {
   try {
     const result = await docStore.deleteNode(key)
     if (result.success) {
-      message.success('删除成功')
+      message.success(t('AppDocGridVue.messages.deleteSuccess'))
     } else {
-      message.error(result.error?.message || '删除失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.deleteFailed'))
     }
-  } catch (error) {
-    console.error('删除失败:', error)
-    message.error('删除失败')
+  } catch {
+    message.error(t('AppDocGridVue.messages.deleteFailed'))
   }
 }
 
@@ -402,13 +401,12 @@ const handleRestoreNode = async (key: string) => {
   try {
     const result = await docStore.restoreNode(key)
     if (result.success) {
-      message.success('恢复成功')
+      message.success(t('AppDocGridVue.messages.restoreSuccess'))
     } else {
-      message.error(result.error?.message || '恢复失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.restoreFailed'))
     }
-  } catch (error) {
-    console.error('恢复失败:', error)
-    message.error('恢复失败')
+  } catch {
+    message.error(t('AppDocGridVue.messages.restoreFailed'))
   }
 }
 
@@ -417,13 +415,12 @@ const handlePermanentDeleteNode = async (key: string) => {
   try {
     const result = await docStore.permanentDeleteNode(key)
     if (result.success) {
-      message.success('永久删除成功')
+      message.success(t('AppDocGridVue.messages.permanentDeleteSuccess'))
     } else {
-      message.error(result.error?.message || '永久删除失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.permanentDeleteFailed'))
     }
-  } catch (error) {
-    console.error('永久删除失败:', error)
-    message.error('永久删除失败')
+  } catch {
+    message.error(t('AppDocGridVue.messages.permanentDeleteFailed'))
   }
 }
 
@@ -458,9 +455,8 @@ const onContextMenuClick = async (itemKey: string, menuKey: string | number) => 
       default:
         break
     }
-  } catch (error) {
-    console.error('操作失败:', error)
-    message.error('操作失败')
+  } catch {
+    message.error(t('errors.operationError'))
   }
 }
 
@@ -469,13 +465,12 @@ const handleMoveConfirm = async (folderKey: string) => {
   try {
     const result = await docStore.moveNode(movingNodeKey.value, folderKey)
     if (result.success) {
-      message.success('移动成功')
+      message.success(t('AppDocGridVue.messages.moveSuccess'))
     } else {
-      message.error(result.error?.message || '移动失败')
+      message.error(result.error?.message || t('AppDocGridVue.messages.moveFailed'))
     }
-  } catch (error) {
-    console.error('移动失败:', error)
-    message.error('移动失败')
+  } catch {
+    message.error(t('AppDocGridVue.messages.moveFailed'))
   } finally {
     moveModalOpen.value = false
     movingNodeKey.value = null

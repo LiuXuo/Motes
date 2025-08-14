@@ -17,7 +17,7 @@
 <template>
   <a-modal
     v-model:open="modalOpen"
-    title="AI生枝配置"
+    :title="t('AiExpandModalVue.title')"
     width="600px"
     :confirm-loading="loading"
     @ok="handleConfirm"
@@ -27,21 +27,21 @@
       <a-alert
         v-if="selectedNodeText"
         type="info"
-        :message="`选中节点: ${selectedNodeText}`"
+        :message="`${t('common.selected')}: ${selectedNodeText}`"
         style="margin-bottom: 16px;"
       />
 
       <a-form ref="formRef" :model="form" layout="vertical">
         <!-- 预设选择 - 放在最显眼位置 -->
-        <a-form-item label="预设">
+        <a-form-item :label="t('AiExpandModalVue.preset')">
           <a-select
             v-model:value="selectedPresetKey"
-            placeholder="选择预设或手动配置"
+            :placeholder="t('AiExpandModalVue.placeholders.selectPreset')"
             @change="handlePresetChange"
             style="width: 100%"
           >
             <a-select-option
-              v-for="preset in aiStore.providerPresets"
+              v-for="preset in localizedProviderPresets"
               :key="preset.key"
               :value="preset.key"
             >
@@ -53,54 +53,54 @@
         </a-form-item>
 
         <!-- 核心配置 - 简化布局 -->
-        <a-form-item label="模型" :required="true" name="provider.model">
-          <a-input v-model:value="form.provider.model" placeholder="如 gpt-4o-mini 或 qwen2:7b-instruct" allow-clear>
+        <a-form-item :label="t('AiExpandModalVue.model')" :required="true" name="provider.model">
+          <a-input v-model:value="form.provider.model" :placeholder="t('AiExpandModalVue.placeholders.enterModel')" allow-clear>
             <template #prefix>
-              <RobotOutlined />
+              <RobotOutlined style="margin-right: 8px;" />
             </template>
           </a-input>
         </a-form-item>
 
-        <a-form-item label="Base URL" :required="true" name="provider.baseUrl">
-          <a-input v-model:value="form.provider.baseUrl" placeholder="请输入 Base URL" allow-clear>
+        <a-form-item :label="t('AiExpandModalVue.baseUrl')" :required="true" name="provider.baseUrl">
+          <a-input v-model:value="form.provider.baseUrl" :placeholder="t('AiExpandModalVue.placeholders.enterBaseUrl')" allow-clear>
             <template #prefix>
-              <GlobalOutlined />
+              <GlobalOutlined style="margin-right: 8px;" />
             </template>
           </a-input>
         </a-form-item>
 
-        <a-form-item v-if="form.provider.type === 'openai'" label="API Key" :required="true" name="provider.apiKey">
-          <a-input-password v-model:value="form.provider.apiKey" placeholder="不保存，仅本次使用" allow-clear>
+        <a-form-item v-if="form.provider.type === 'openai'" :label="t('AiExpandModalVue.apiKey')" :required="true" name="provider.apiKey">
+          <a-input-password v-model:value="form.provider.apiKey" :placeholder="t('AiExpandModalVue.placeholders.apiKeyHint')" allow-clear>
             <template #prefix>
-              <KeyOutlined />
+              <KeyOutlined style="margin-right: 8px;" />
             </template>
           </a-input-password>
         </a-form-item>
 
         <!-- 更多配置 - 使用折叠面板 -->
         <a-collapse v-model:activeKey="activeCollapseKeys" ghost>
-          <a-collapse-panel key="advanced" header="更多配置">
+          <a-collapse-panel key="advanced" :header="t('AiExpandModalVue.more')">
             <a-row :gutter="12">
               <a-col :span="12">
-                <a-form-item label="温度">
+                <a-form-item :label="t('AiExpandModalVue.temperature')">
                   <a-input-number
                     v-model:value="form.provider.temperature"
                     :min="0"
                     :max="2"
                     :step="0.1"
-                    placeholder="0.7"
+                    :placeholder="t('AiExpandModalVue.placeholders.temperatureHint')"
                     style="width: 100%"
                   />
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="Top P">
+                <a-form-item :label="t('AiExpandModalVue.topP')">
                   <a-input-number
                     v-model:value="form.provider.top_p"
                     :min="0"
                     :max="1"
                     :step="0.05"
-                    placeholder="0.9"
+                    :placeholder="t('AiExpandModalVue.placeholders.topPHint')"
                     style="width: 100%"
                   />
                 </a-form-item>
@@ -109,7 +109,7 @@
 
             <a-row :gutter="12">
               <a-col :span="12">
-                <a-form-item label="最大层级">
+                <a-form-item :label="t('AiExpandModalVue.maxLevel')">
                   <a-input-number
                     v-model:value="form.options.depthLimit"
                     :min="1"
@@ -119,7 +119,7 @@
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="每层最大分支数">
+                <a-form-item :label="t('AiExpandModalVue.maxBranches')">
                   <a-input-number
                     v-model:value="form.options.branchingFactor"
                     :min="1"
@@ -130,10 +130,10 @@
               </a-col>
             </a-row>
 
-            <a-form-item label="输出语言">
+            <a-form-item :label="t('AiExpandModalVue.outputLanguage')">
               <a-select v-model:value="form.options.language" style="width: 100%">
-                <a-select-option value="zh">中文</a-select-option>
-                <a-select-option value="en">English</a-select-option>
+                <a-select-option value="zh">{{ t('AiExpandModalVue.languages.zh') }}</a-select-option>
+                <a-select-option value="en">{{ t('AiExpandModalVue.languages.en') }}</a-select-option>
               </a-select>
             </a-form-item>
           </a-collapse-panel>
@@ -147,6 +147,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   DesktopOutlined,
   CloudOutlined,
@@ -158,6 +159,36 @@ import { message, type FormInstance } from 'ant-design-vue'
 import { useAiStore } from '@/stores/aiStore'
 import { useMoteStore } from '@/stores/moteStore'
 import { storeToRefs } from 'pinia'
+
+const { t } = useI18n()
+
+// 国际化预设列表
+const localizedProviderPresets = computed(() => {
+  return aiStore.providerPresets.map(preset => ({
+    ...preset,
+    name: getPresetName(preset.key)
+  }))
+})
+
+// 获取预设名称的国际化文本
+const getPresetName = (key: string): string => {
+  const presetMap: Record<string, string> = {
+    'manual-ollama-custom': t('aiStoreTs.presets.manualOllamaCustom'),
+    'ollama-qwen2-7b-instruct': t('aiStoreTs.presets.ollamaQwen2'),
+    'ollama-llama3-8b-instruct': t('aiStoreTs.presets.ollamaLlama3'),
+    'ollama-mistral-7b-instruct': t('aiStoreTs.presets.ollamaMistral'),
+    'ollama-gemma3-4b': t('aiStoreTs.presets.ollamaGemma3'),
+    'manual-openai-custom': t('aiStoreTs.presets.manualOpenaiCustom'),
+    'openai-gpt-4o-mini': t('aiStoreTs.presets.openaiGpt4oMini'),
+    'openai-gpt-3-5-turbo': t('aiStoreTs.presets.openaiGpt35Turbo'),
+    'deepseek-chat': t('aiStoreTs.presets.deepseekChat'),
+    'deepseek-reasoner': t('aiStoreTs.presets.deepseekReasoner'),
+    'gemini-2-0-flash': t('aiStoreTs.presets.gemini20Flash'),
+    'gemini-2-0-flash-exp': t('aiStoreTs.presets.gemini20FlashExp'),
+    'gemini-1-5-flash': t('aiStoreTs.presets.gemini15Flash')
+  }
+  return presetMap[key] || key
+}
 
 const props = defineProps<{
   open: boolean;
@@ -298,15 +329,15 @@ const validateForm = (): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
   if (!form.provider.model?.trim()) {
-    errors.push('请输入模型名称');
+    errors.push(t('AiExpandModalVue.messages.validationErrors.enterModel'));
   }
 
   if (!form.provider.baseUrl?.trim()) {
-    errors.push('请输入服务地址');
+    errors.push(t('AiExpandModalVue.messages.validationErrors.enterBaseUrl'));
   }
 
   if (form.provider.type === 'openai' && !form.provider.apiKey?.trim()) {
-    errors.push('请输入 API Key');
+    errors.push(t('AiExpandModalVue.messages.validationErrors.enterApiKey'));
   }
 
   return {
@@ -357,11 +388,11 @@ const handleConfirm = async () => {
       }
     );
 
-    message.success('AI生枝成功');
+    message.success(t('AiExpandModalVue.messages.expandSuccess'));
     handleCancel();
   } catch (err: unknown) {
     const error = err as { message?: string; details?: string };
-    errorMsg.value = error?.message || 'AI生枝失败';
+      errorMsg.value = error?.message || t('AiExpandModalVue.messages.expandFailed');
     errorDetails.value = error?.details || null;
   } finally {
     loading.value = false;
@@ -386,7 +417,7 @@ const handleCancel = () => {
 // 监听弹窗打开，设置默认预设
 watch(() => props.open, (newOpen) => {
   if (newOpen) {
-    const defaultPreset = aiStore.providerPresets.find(preset =>
+    const defaultPreset = localizedProviderPresets.value.find(preset =>
       preset.type === form.provider.type &&
       preset.model === form.provider.model &&
       preset.baseUrl === form.provider.baseUrl

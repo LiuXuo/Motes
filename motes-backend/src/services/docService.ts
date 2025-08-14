@@ -12,7 +12,7 @@
 import { Doc, IDocNode } from '../models/Doc';
 import { Mote } from '../models/Mote';
 import { generateId } from '../utils/idGenerator';
-import { generateDefaultDocTree, defaultMotes } from '../config/defaultData';
+import { generateDefaultDocTree, defaultMote01, defaultMote02, defaultMote03 } from '../config/defaultData';
 import type { DocTreeNode } from '../types/common';
 
 /**
@@ -34,20 +34,21 @@ export class DocService {
    * 创建默认文档树时会同时创建对应的默认 mote 记录。
    * 
    * @param {string} userId - 用户ID
+   * @param {string} language - 用户语言偏好 ('zh-CN' | 'en-US')
    * @returns {Promise<{docTree: DocTreeNode}>} 文档树结构
    * 
    * @throws {500} 当数据库操作失败时
    * 
    * @example
-   * const result = await DocService.getDocTree('user123');
+   * const result = await DocService.getDocTree('user123', 'zh-CN');
    * console.log(result.docTree);
    */
-  static async getDocTree(userId: string) {
+  static async getDocTree(userId: string, language: 'zh-CN' | 'en-US' = 'zh-CN') {
     let doc = await Doc.findOne({ userId });
     
     if (!doc) {
       // 如果用户没有文档树，创建一个默认的引导文档树
-      const defaultDocTree = generateDefaultDocTree(userId);
+      const defaultDocTree = generateDefaultDocTree(userId, language);
       
       doc = new Doc({
         userId,
@@ -56,7 +57,13 @@ export class DocService {
       await doc.save();
       
       // 创建对应的默认mote（并行执行，不等待完成）
-      Object.values(defaultMotes).forEach(moteData => {
+      const allDefaultMotes = {
+        ...defaultMote01[language],
+        ...defaultMote02[language],
+        ...defaultMote03[language],
+      };
+      
+      Object.values(allDefaultMotes).forEach(moteData => {
         Mote.create(moteData).catch(error => {
           console.error('创建默认mote时出错:', error);
           // 即使mote创建失败，也不影响文档树的创建
@@ -285,7 +292,7 @@ export class DocService {
     const duplicateNode = (node: IDocNode): IDocNode => {
       const newNode: IDocNode = {
         key: generateId(),
-        title: node.title + ' (副本)',
+        title: node.title + ' +',
         type: node.type,
         isDeleted: false,
       };

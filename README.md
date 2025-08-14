@@ -1,8 +1,24 @@
 # Motes - 思维导图大纲笔记
 
+<p align="center">
+  <a href="./motes-frontend/README.md">
+    <img src="https://img.shields.io/badge/前端-README-blue?style=for-the-badge&logo=markdown" alt="前端 README">
+  </a>
+  <a href="./motes-backend/README.md">
+    <img src="https://img.shields.io/badge/后端-README-blue?style=for-the-badge&logo=markdown" alt="后端 README">
+  </a>
+  <a href="./API_DOCUMENTATION.md">
+    <img src="https://img.shields.io/badge/API-DOCUMENTATION-blue?style=for-the-badge&logo=markdown" alt="API DOCUMENTATION">
+  <br />
+  <a href="./README_en.md">
+    <img src="https://img.shields.io/badge/English-README-green?style=for-the-badge&logo=markdown" alt="English README">
+  </a>
+  </a>
+</p>
+
 ## 📖 项目简介
 
-Motes 是一个现代化的 AI 驱动的思维导图大纲笔记 Web 应用（基于 Vue 3 + Express.js），提供直观的思维导图编辑和便捷的大纲笔记操作功能，集成 OpenAI兼容、Ollama 等多种大语言模型服务，可基于主题、文本或文件自动生成结构化脑图笔记或基于已有脑图笔记进行节点拓展，帮助用户快速构建完整的知识网络。
+Motes 是一个现代化的 AI 驱动的思维导图大纲笔记 Web 应用（基于 Vue.js + Express.js），提供直观的思维导图编辑和便捷的大纲笔记操作功能，集成 OpenAI兼容、Ollama 等多种大语言模型服务，可基于主题、文本或文件自动生成结构化脑图笔记或基于已有脑图笔记进行节点拓展，帮助用户快速构建完整的知识网络。
 
 ### 项目命名
 
@@ -15,7 +31,7 @@ Motes 是一个现代化的 AI 驱动的思维导图大纲笔记 Web 应用（�
 
 ### 设计理念
 
-Motes 致力于将碎片化的知识微粒通过 AI 智能技术连接起来，通过思维导图的视觉化展示和大纲笔记的结构化组织，结合大语言模型的智能生成能力，帮助用户快速构建完整的知识体系。每个 mote（微粒）都是知识的最小单元，通过 AI 的智能分析和连接，形成强大的知识网络。
+Motes 致力于将碎片化的知识微粒通过 AI 技术连接起来，通过思维导图的视觉化展示和大纲笔记的结构化组织，结合大语言模型的智能生成能力，帮助用户快速构建完整的知识体系。每个 mote（微粒）都是知识的最小单元，通过 AI 的智能分析和连接，形成强大的知识网络。
 
 ## 运行截图
 
@@ -104,6 +120,7 @@ Motes 致力于将碎片化的知识微粒通过 AI 智能技术连接起来，�
 - **@antv/x6 2.18.1** - 图编辑引擎
 - **Pinia 3.0.3** - Vue 的状态管理库
 - **Vue Router 4.5.1** - Vue.js 官方路由管理器
+- **Vue I18n 9.14.5** - Vue.js 国际化插件
 
 ### 后端技术栈
 - **Node.js 18+** - JavaScript 运行时环境
@@ -254,9 +271,6 @@ npm run dev
 
 ## 🔗 相关链接
 
-- [本项目前端文档](./motes-frontend/README.md)
-- [本项目后端文档](./motes-backend/README.md)
-- [本项目 API 文档](./API_DOCUMENTATION.md)
 - [Vue.js 文档](https://vuejs.org/)
 - [Express.js 文档](https://expressjs.com/)
 - [AntV X6 文档](https://x6.antv.antgroup.com/)

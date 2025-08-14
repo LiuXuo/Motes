@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useMoteStore } from '@/stores/moteStore'
 import { useAiStore } from '@/stores/aiStore'
 import { onMounted, onBeforeUnmount, watch } from 'vue'
@@ -38,6 +39,8 @@ import { message } from 'ant-design-vue'
 import MapRender from '@/components/map/MapRender.vue'
 import NoteRender from '@/components/note/NoteRender.vue'
 import AiExpandModal from './AiExpandModal.vue'
+
+const { t } = useI18n()
 
 // ==================== 路由参数 ====================
 const route = useRoute()
@@ -102,14 +105,14 @@ const saveDocumentWithMessage = async () => {
   try {
     const success = await moteStore.saveDocument()
     if (success) {
-      message.success('文档已保存')
+      message.success(t('AppMoteVue.messages.saveSuccess'))
       return true
     } else {
-      message.error('保存失败')
+      message.error(t('AppMoteVue.messages.saveFailed'))
       return false
     }
   } catch {
-    message.error('保存过程中发生错误')
+    message.error(t('AppMoteVue.messages.saveError'))
     return false
   }
 }
@@ -182,15 +185,15 @@ watch(
           try {
             const success = await moteStore.loadMoteData(newMoteId)
             if (!success) {
-              message.error('加载脑图数据失败')
+              message.error(t('AppMoteVue.messages.loadFailed'))
             }
           } catch (error: unknown) {
             if (error && typeof error === 'object' && 'name' in error && error.name === 'NOT_FOUND') {
-              message.error((error as { message?: string }).message || '脑图笔记不存在')
+              message.error((error as { message?: string }).message || t('AppMoteVue.messages.notFound'))
               // 重定向到404页面
               router.push('/404')
             } else {
-              message.error('加载脑图数据失败')
+              message.error(t('AppMoteVue.messages.loadFailed'))
             }
           }
         }
@@ -207,12 +210,12 @@ onBeforeRouteLeave(async (to, from, next) => {
     try {
       const success = await moteStore.saveDocument()
       if (success) {
-        message.success('文档已保存')
-      } else {
-        message.error('保存失败')
-      }
-    } catch {
-      message.error('保存过程中发生错误')
+        message.success(t('AppMoteVue.messages.saveSuccess'))
+              } else {
+          message.error(t('AppMoteVue.messages.saveFailed'))
+        }
+      } catch {
+        message.error(t('AppMoteVue.messages.saveError'))
     }
   }
   next()
@@ -231,15 +234,15 @@ onMounted(async () => {
     try {
       const success = await moteStore.loadMoteData(moteId)
       if (!success) {
-        message.error('加载脑图数据失败')
+        message.error(t('AppMoteVue.messages.loadFailed'))
       }
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'name' in error && error.name === 'NOT_FOUND') {
-        message.error((error as { message?: string }).message || '脑图笔记不存在')
+        message.error((error as { message?: string }).message || t('AppMoteVue.messages.notFound'))
         // 重定向到404页面
         router.push('/404')
       } else {
-        message.error('加载脑图数据失败')
+        message.error(t('AppMoteVue.messages.loadFailed'))
       }
     }
   }
